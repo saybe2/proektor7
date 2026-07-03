@@ -1,0 +1,40 @@
+services:
+  web:
+    build:
+      context: .
+      args:
+        NEXT_PUBLIC_SITE_URL: "https://proektor7.ru"
+        # публичный VAPID-ключ (тот же, что в .env.production)
+        NEXT_PUBLIC_VAPID_PUBLIC_KEY: "${NEXT_PUBLIC_VAPID_PUBLIC_KEY:-}"
+    image: proektor7
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env.production
+    environment:
+      DATABASE_URL: "file:/data/prod.db"
+      # RUN_SEED: "1"   # раскомментировать при ПЕРВОМ запуске, потом убрать
+    volumes:
+      - proektor_db:/data
+      - proektor_uploads:/app/public/img/uploads
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # Ежедневный крон: пуши о дне рождения за 14/7/4 дня (12:00)
+  cron:
+    image: alpine:3.20
+    restart: unless-stopped
+    depends_on:
+      - web
+    env_file:
+      - .env.production
+    command: >
+      sh -c 'echo "0 12 * * * wget -qO- --header=\"Authorization: Bearer $$CRON_SECRET\" http://web:3000/api/cron/birthday" | crontab - && crond -f -l 2'
+
+volumes:
+  proektor_db:
+  proektor_uploads:

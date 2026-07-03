@@ -1,0 +1,60 @@
+import type { Metadata } from "next";
+import { Nunito } from "next/font/google";
+import "./globals.css";
+import { SITE } from "@/lib/config";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import { getCurrentUser } from "@/lib/auth";
+
+const nunito = Nunito({
+  variable: "--font-nunito",
+  subsets: ["latin", "cyrillic"],
+  weight: ["400", "600", "700", "800", "900"],
+});
+
+export const metadata: Metadata = {
+  metadataBase: new URL(SITE.URL),
+  title: {
+    default: `${SITE.NAME} — караоке, настольные игры, комнаты с проектором`,
+    template: `%s — ${SITE.NAME}`,
+  },
+  description: SITE.DESCRIPTION,
+  keywords: [
+    "тайм-кафе",
+    "антикафе",
+    "караоке",
+    "настольные игры",
+    "проектор",
+    "день рождения",
+    "аренда комнаты",
+  ],
+  openGraph: {
+    title: SITE.NAME,
+    description: SITE.DESCRIPTION,
+    url: SITE.URL,
+    siteName: SITE.NAME,
+    locale: "ru_RU",
+    type: "website",
+    images: ["/img/logo.jpg"],
+  },
+};
+
+export default async function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  const user = await getCurrentUser();
+
+  return (
+    <html lang="ru" className={`${nunito.variable} h-full antialiased`}>
+      <body className="min-h-screen flex flex-col">
+        <Header
+          user={user ? { name: user.name, role: user.role, bonusBalance: user.bonusBalance } : null}
+        />
+        <main className="flex-1">{children}</main>
+        <Footer />
+      </body>
+    </html>
+  );
+}

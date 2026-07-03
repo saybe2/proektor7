@@ -1,0 +1,103 @@
+@import "tailwindcss";
+
+:root {
+  /* Палитра из лого: насыщенный синий + белый */
+  --brand: #2222b2;
+  --brand-dark: #17177e;
+  --brand-light: #4747d1;
+  --brand-bg: #f2f4ff;
+  --background: #ffffff;
+  --foreground: #14143c;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-brand: var(--brand);
+  --color-brand-dark: var(--brand-dark);
+  --color-brand-light: var(--brand-light);
+  --color-brand-bg: var(--brand-bg);
+  --font-sans: var(--font-nunito);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-nunito), system-ui, sans-serif;
+}
+
+/* Жирные округлые заголовки в духе лого */
+.h-display {
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.btn-brand {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: var(--brand);
+  color: #fff;
+  font-weight: 800;
+  border-radius: 9999px;
+  padding: 0.75rem 1.75rem;
+  transition: background 0.15s, transform 0.1s;
+}
+.btn-brand:hover {
+  background: var(--brand-dark);
+}
+.btn-brand:active {
+  transform: scale(0.97);
+}
+.btn-brand:disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 2px solid var(--brand);
+  color: var(--brand);
+  font-weight: 800;
+  border-radius: 9999px;
+  padding: 0.7rem 1.7rem;
+  transition: background 0.15s, color 0.15s;
+}
+.btn-outline:hover {
+  background: var(--brand);
+  color: #fff;
+}
+
+.card {
+  background: #fff;
+  border: 1px solid #e3e6f5;
+  border-radius: 1.25rem;
+  box-shadow: 0 2px 12px rgba(34, 34, 178, 0.06);
+}
+
+.input {
+  width: 100%;
+  border: 2px solid #d9ddf2;
+  border-radius: 0.9rem;
+  padding: 0.7rem 1rem;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.15s;
+  background: #fff;
+}
+.input:focus {
+  border-color: var(--brand);
+}
+
+.label {
+  display: block;
+  font-weight: 700;
+  font-size: 0.875rem;
+  margin-bottom: 0.35rem;
+  color: var(--brand-dark);
+}

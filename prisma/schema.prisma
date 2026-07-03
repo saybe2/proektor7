@@ -1,0 +1,144 @@
+// Схема БД тайм-кафе «ПРОЕКТОР»
+// Для разработки — SQLite, для продакшена меняем provider на postgresql
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CLIENT
+  ADMIN
+  OWNER
+}
+
+model User {
+  id           String   @id @default(cuid())
+  phone        String   @unique // формат 79XXXXXXXXX
+  name         String?
+  birthDate    DateTime?
+  role         Role     @default(CLIENT)
+  bonusBalance Int      @default(0)
+  refCode      String   @unique // код реферальной ссылки
+  referredBy   User?    @relation("Referrals", fields: [referredById], references: [id])
+  referredById String?
+  referrals    User[]   @relation("Referrals")
+  createdAt    DateTime @default(now())
+
+  purchases         Purchase[]        @relation("ClientPurchases")
+  adminPurchases    Purchase[]        @relation("AdminPurchases")
+  bonusTransactions BonusTransaction[]
+  pushSubscriptions PushSubscription[]
+  notifications     NotificationLog[]
+}
+
+// Покупка (чек), которую админ проводит на кассе
+model Purchase {
+  id          String   @id @default(cuid())
+  user        User     @relation("ClientPurchases", fields: [userId], references: [id])
+  userId      String
+  amount      Int      // сумма чека в рублях
+  bonusesSpent Int     @default(0) // сколько оплачено бонусами (макс 50%)
+  admin       User?    @relation("AdminPurchases", fields: [adminId], references: [id])
+  adminId     String?
+  createdAt   DateTime @default(now())
+
+  bonusTransactions BonusTransaction[]
+}
+
+enum BonusType {
+  WELCOME   // 150 бонусов за регистрацию
+  CASHBACK  // 1% от покупки
+  REFERRAL  // 3% от покупок друга
+  REDEEM    // списание при оплате
+  MANUAL    // ручная корректировка админом/владельцем
+}
+
+model BonusTransaction {
+  id         String    @id @default(cuid())
+  user       User      @relation(fields: [userId], references: [id])
+  userId     String
+  amount     Int       // + начисление, - списание
+  type       BonusType
+  purchase   Purchase? @relation(fields: [purchaseId], references: [id])
+  purchaseId String?
+  comment    String?
+  createdAt  DateTime  @default(now())
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+}
+
+// Код подтверждения (flash call / telegram / sms)
+model OtpCode {
+  id        String   @id @default(cuid())
+  phone     String
+  code      String
+  attempts  Int      @default(0)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([phone])
+}
+
+// Лог отправленных авто-уведомлений (чтобы не дублировать пуш на ДР)
+model NotificationLog {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  kind      String   // например bday_14, bday_7, bday_4
+  year      Int
+  createdAt DateTime @default(now())
+
+  @@unique([userId, kind, year])
+}
+
+// ==== Контент сайта (правит владелец) ====
+
+model Room {
+  id          String  @id @default(cuid())
+  name        String
+  description String
+  capacity    Int
+  price       Int     // руб/час
+  images      String  @default("[]") // JSON-массив путей к фото
+  sort        Int     @default(0)
+  active      Boolean @default(true)
+}
+
+model MenuItem {
+  id          String  @id @default(cuid())
+  category    String  // Напитки, Снеки, Десерты...
+  name        String
+  description String  @default("")
+  price       Int
+  image       String?
+  sort        Int     @default(0)
+  available   Boolean @default(true)
+}
+
+model Game {
+  id          String  @id @default(cuid())
+  name        String
+  description String  @default("")
+  players     String  @default("") // например "2-6"
+  image       String?
+  sort        Int     @default(0)
+}
+
+// Настройки (ключ-значение): проценты, тексты акций и т.д.
+model Setting {
+  key   String @id
+  value String
+}
