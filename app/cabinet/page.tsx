@@ -9,11 +9,11 @@ import LogoutButton from "./LogoutButton";
 export const dynamic = "force-dynamic";
 
 const TYPE_LABELS: Record<string, string> = {
-  WELCOME: "🎁 Приветственные",
-  CASHBACK: "💰 Кэшбэк",
-  REFERRAL: "👥 За друга",
-  REDEEM: "💳 Оплата бонусами",
-  MANUAL: "✏️ Корректировка",
+  WELCOME: "Приветственные",
+  CASHBACK: "Кэшбэк",
+  REFERRAL: "За друга",
+  REDEEM: "Оплата бонусами",
+  MANUAL: "Корректировка",
 };
 
 export default async function CabinetPage() {

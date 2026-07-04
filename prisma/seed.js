@@ -38,7 +38,7 @@ async function main() {
           description:
             "Просторная комната с большим проектором, мягкими диванами и караоке. Идеальна для кино-вечера или дня рождения.",
           capacity: 10,
-          price: 400,
+          price: 250,
           sort: 1,
         },
         {
@@ -46,7 +46,7 @@ async function main() {
           description:
             "PlayStation 5, два геймпада, проектор и удобные кресла-мешки. FIFA, Mortal Kombat и не только.",
           capacity: 6,
-          price: 350,
+          price: 250,
           sort: 2,
         },
         {

@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Меню — напитки, снеки, десерты",
   description:
-    "Меню тайм-кафе ПРОЕКТОР: кофе, чай, лимонады, снеки и десерты по приятным ценам.",
+    "Меню тайм-кафе Proектор: кофе, чай, лимонады, снеки и десерты по приятным ценам.",
 };
 
 export default async function MenuPage() {

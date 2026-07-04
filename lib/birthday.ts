@@ -39,8 +39,8 @@ export async function runBirthdayPushes() {
     if (already) continue;
 
     const { sent } = await sendPushToUser(user.id, {
-      title: "🎂 Скоро день рождения!",
-      body: `${user.name || "Привет"}! Приходи в ПРОЕКТОР отмечать — скидка ${BIRTHDAY_PUSH.DISCOUNT_PERCENT}% при чеке от ${BIRTHDAY_PUSH.MIN_CHECK} ₽!`,
+      title: "Скоро день рождения!",
+      body: `${user.name || "Привет"}! Приходи в Proектор отмечать — скидка ${BIRTHDAY_PUSH.DISCOUNT_PERCENT}% при чеке от ${BIRTHDAY_PUSH.MIN_CHECK} ₽!`,
       url: "/",
     });
 

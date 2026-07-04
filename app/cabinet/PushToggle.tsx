@@ -71,7 +71,7 @@ export default function PushToggle() {
   return (
     <div className="card p-6 flex items-center justify-between gap-4">
       <div>
-        <div className="font-extrabold text-brand-dark">🔔 Уведомления</div>
+        <div className="font-extrabold text-brand-dark">Уведомления</div>
         <p className="text-sm text-[#3c3c6e]">
           Акции, скидки и напоминание о подарке на день рождения
         </p>

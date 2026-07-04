@@ -31,7 +31,7 @@ export default function BroadcastForm() {
   return (
     <div className="card p-6">
       <h2 className="font-extrabold text-lg text-brand-dark mb-4">
-        🔔 Пуш-рассылка всем клиентам
+        Пуш-рассылка всем клиентам
       </h2>
       <div className="space-y-3">
         <div>
@@ -40,7 +40,7 @@ export default function BroadcastForm() {
             className="input"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Акция в ПРОЕКТОРЕ!"
+            placeholder="Акция в Proекторе!"
           />
         </div>
         <div>

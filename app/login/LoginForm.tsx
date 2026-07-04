@@ -174,7 +174,7 @@ export default function LoginForm() {
         />
       </div>
       <div>
-        <label className="label">Дата рождения (для подарков 🎁)</label>
+          <label className="label">Дата рождения (для скидки на праздник)</label>
         <input
           className="input"
           type="date"

@@ -17,9 +17,9 @@ type Game = {
 };
 
 const TABS: { key: Entity; label: string }[] = [
-  { key: "room", label: "📽️ Комнаты" },
-  { key: "menu", label: "🍪 Меню" },
-  { key: "game", label: "🎲 Игры" },
+  { key: "room", label: "Комнаты" },
+  { key: "menu", label: "Меню" },
+  { key: "game", label: "Игры" },
 ];
 
 export default function ContentEditor() {
@@ -135,7 +135,7 @@ function RoomsTab() {
             <input className="input" type="number" value={editing.capacity ?? ""} onChange={(e) => setEditing({ ...editing, capacity: Number(e.target.value) })} />
           </div>
           <div>
-            <label className="label">₽/час</label>
+            <label className="label">₽/час с чел.</label>
             <input className="input" type="number" value={editing.price ?? ""} onChange={(e) => setEditing({ ...editing, price: Number(e.target.value) })} />
           </div>
           <div>
@@ -155,7 +155,7 @@ function RoomsTab() {
                 <button
                   className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 text-xs font-bold"
                   onClick={() => setImages(images.filter((_, j) => j !== i))}
-                >✕</button>
+                >x</button>
               </div>
             ))}
             <label className="h-24 w-36 border-2 border-dashed border-[#d9ddf2] rounded-lg flex items-center justify-center cursor-pointer text-brand font-bold text-sm hover:border-brand">
@@ -201,7 +201,7 @@ function RoomsTab() {
               {room.name} {!room.active && <span className="text-xs text-red-500">(скрыта)</span>}
             </div>
             <div className="text-sm text-[#3c3c6e]">
-              {room.price} ₽/час · до {room.capacity} чел · фото: {JSON.parse(room.images).length}
+              {room.price} ₽/час с чел. · до {room.capacity} чел · фото: {JSON.parse(room.images).length}
             </div>
           </div>
           <div className="flex gap-2 shrink-0">
@@ -368,7 +368,7 @@ function GamesTab() {
         <div key={game.id} className="card p-4 flex items-center justify-between gap-3">
           <div>
             <div className="font-bold text-brand-dark">{game.name}</div>
-            <div className="text-sm text-[#3c3c6e]">{game.players && `👥 ${game.players}`} {game.description}</div>
+            <div className="text-sm text-[#3c3c6e]">{game.players && `${game.players} игроков · `}{game.description}</div>
           </div>
           <div className="flex gap-2 shrink-0">
             <button className="btn-outline !py-1.5 !px-3 text-sm" onClick={() => setEditing(game)}>Изменить</button>

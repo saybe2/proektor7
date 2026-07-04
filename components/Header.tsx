@@ -28,7 +28,7 @@ export default function Header({ user }: Props) {
         <Link href="/" className="flex items-center gap-2 shrink-0">
           <Image
             src="/img/logo.jpg"
-            alt="Тайм-кафе ПРОЕКТОР"
+            alt="Тайм-кафе Proектор"
             width={120}
             height={48}
             className="h-12 w-auto object-contain"
