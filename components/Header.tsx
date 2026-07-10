@@ -1,8 +1,5 @@
-"use client";
-
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
 
 const NAV = [
   { href: "/rooms", label: "Комнаты" },
@@ -17,8 +14,6 @@ type Props = {
 };
 
 export default function Header({ user }: Props) {
-  const [open, setOpen] = useState(false);
-
   const cabinetHref =
     user?.role === "OWNER" ? "/owner" : user?.role === "ADMIN" ? "/admin" : "/cabinet";
 
@@ -69,40 +64,37 @@ export default function Header({ user }: Props) {
           )}
         </div>
 
-        <button
-          className="lg:hidden p-2 border-2 border-[#111118]"
-          onClick={() => setOpen(!open)}
-          aria-label="Меню"
-          aria-expanded={open}
-          aria-controls="mobile-navigation"
-        >
-          <div className="w-5 h-0.5 bg-[#111118] mb-1.5" />
-          <div className="w-5 h-0.5 bg-[#111118] mb-1.5" />
-          <div className="w-5 h-0.5 bg-[#111118]" />
-        </button>
-      </div>
-
-      {open && (
-        <nav id="mobile-navigation" className="lg:hidden border-t-2 border-[#111118] bg-[#f5f1e8] px-4 py-5 flex flex-col gap-2">
-          {NAV.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="font-black uppercase tracking-wide py-2 border-b border-[#d8d4ca]"
-              onClick={() => setOpen(false)}
-            >
-              {item.label}
-            </Link>
-          ))}
-          <Link
-            href={user ? cabinetHref : "/login"}
-            className="btn-brand text-center"
-            onClick={() => setOpen(false)}
+        <details className="mobile-menu lg:hidden">
+          <summary
+            className="p-2 border-2 border-[#111118] cursor-pointer list-none"
+            aria-label="Открыть меню"
           >
-            {user ? "Личный кабинет" : "Войти"}
-          </Link>
-        </nav>
-      )}
+            <span className="mobile-menu-icon block" aria-hidden="true">
+              <span className="block w-5 h-0.5 bg-[#111118] mb-1.5" />
+              <span className="block w-5 h-0.5 bg-[#111118] mb-1.5" />
+              <span className="block w-5 h-0.5 bg-[#111118]" />
+            </span>
+          </summary>
+
+          <nav id="mobile-navigation" className="absolute left-0 right-0 top-full border-t-2 border-b-2 border-[#111118] bg-[#f5f1e8] px-4 py-5 flex flex-col gap-2 shadow-[0_8px_0_rgba(17,17,24,.14)]">
+            {NAV.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="font-black uppercase tracking-wide py-2 border-b border-[#d8d4ca]"
+              >
+                {item.label}
+              </Link>
+            ))}
+            <Link
+              href={user ? cabinetHref : "/login"}
+              className="btn-brand text-center mt-2"
+            >
+              {user ? "Личный кабинет" : "Войти"}
+            </Link>
+          </nav>
+        </details>
+      </div>
     </header>
   );
 }
