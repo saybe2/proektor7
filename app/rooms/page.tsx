@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { db } from "@/lib/db";
 import { PRICES, SITE } from "@/lib/config";
-import { IconProjector, IconUsers, IconPhone } from "@/components/icons";
-import Image from "next/image";
+import { IconUsers, IconPhone } from "@/components/icons";
 import { DEFAULT_ROOMS } from "@/lib/rooms";
+import RoomGallery from "@/components/RoomGallery";
 
 export const dynamic = "force-dynamic";
 
@@ -53,27 +53,7 @@ export default async function RoomsPage() {
           const images = parseImages(room.images);
           return (
             <div key={room.id} className="card overflow-hidden">
-              <div className="relative aspect-video bg-[#d9ddf2] flex items-center justify-center overflow-hidden">
-                {images[0] ? (
-                  <Image src={images[0]} alt={room.name} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" />
-                ) : (
-                  <IconProjector className="w-16 h-16 text-brand/40" />
-                )}
-              </div>
-              {images.length > 1 && (
-                <div className="flex gap-2 p-2 overflow-x-auto snap-x">
-                  {images.slice(1).map((src, i) => (
-                    <Image
-                      key={i}
-                      src={src}
-                      alt={`${room.name} фото ${i + 2}`}
-                      width={256}
-                      height={192}
-                      className="h-20 w-28 md:h-24 md:w-36 object-cover shrink-0 snap-start border border-[#111118]"
-                    />
-                  ))}
-                </div>
-              )}
+              <RoomGallery images={images} roomName={room.name} />
               <div className="p-4 md:p-6">
                 <div className="flex items-start justify-between gap-3">
                   <h2 className="font-extrabold text-lg md:text-xl text-brand-dark">

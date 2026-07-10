@@ -177,6 +177,39 @@ select:focus-visible {
 }
 .mobile-menu-icon > span { transition: transform 0.18s ease, opacity 0.18s ease; }
 
+.room-gallery-track {
+  scrollbar-width: none;
+  touch-action: pan-x pan-y;
+}
+.room-gallery-track::-webkit-scrollbar { display: none; }
+.gallery-arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  transform: translateY(-50%);
+  place-items: center;
+  border: 2px solid #111118;
+  background: rgba(255, 254, 250, 0.92);
+  color: #111118;
+  box-shadow: 3px 3px 0 #111118;
+}
+.gallery-arrow:active {
+  transform: translate(2px, calc(-50% + 2px));
+  box-shadow: 1px 1px 0 #111118;
+}
+.gallery-arrow svg {
+  width: 1.4rem;
+  height: 1.4rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.5;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+}
+
 @keyframes ticker { to { transform: translateX(-50%); } }
 
 @media (prefers-reduced-motion: reduce) {
