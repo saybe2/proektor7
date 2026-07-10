@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 type Step = "phone" | "code" | "profile";
@@ -19,10 +19,6 @@ export default function LoginForm() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [channel, setChannel] = useState<string>("");
-
-  useEffect(() => {
-    if (refFromUrl) setRefCode(refFromUrl);
-  }, [refFromUrl]);
 
   async function sendCode() {
     setError("");

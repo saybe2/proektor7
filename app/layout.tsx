@@ -1,15 +1,21 @@
 import type { Metadata } from "next";
-import { Nunito } from "next/font/google";
+import { Manrope, Unbounded } from "next/font/google";
 import "./globals.css";
 import { SITE } from "@/lib/config";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { getCurrentUser } from "@/lib/auth";
+import MobileDock from "@/components/MobileDock";
 
-const nunito = Nunito({
-  variable: "--font-nunito",
+const manrope = Manrope({
+  variable: "--font-manrope",
   subsets: ["latin", "cyrillic"],
-  weight: ["400", "600", "700", "800", "900"],
+});
+
+const unbounded = Unbounded({
+  variable: "--font-unbounded",
+  subsets: ["latin", "cyrillic"],
+  weight: ["600", "700", "800", "900"],
 });
 
 export const metadata: Metadata = {
@@ -49,13 +55,14 @@ export default async function RootLayout({
   const user = await getCurrentUser();
 
   return (
-    <html lang="ru" className={`${nunito.variable} h-full antialiased`}>
+    <html lang="ru" className={`${manrope.variable} ${unbounded.variable} h-full antialiased`}>
       <body className="min-h-screen flex flex-col">
         <Header
           user={user ? { name: user.name, role: user.role, bonusBalance: user.bonusBalance } : null}
         />
         <main className="flex-1">{children}</main>
         <Footer />
+        <MobileDock />
       </body>
     </html>
   );

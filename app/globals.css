@@ -1,13 +1,17 @@
 @import "tailwindcss";
 
 :root {
-  /* Палитра из лого: насыщенный синий + белый */
-  --brand: #2222b2;
-  --brand-dark: #17177e;
-  --brand-light: #4747d1;
-  --brand-bg: #f2f4ff;
-  --background: #ffffff;
-  --foreground: #14143c;
+  --brand: #2020c7;
+  --brand-dark: #11116f;
+  --brand-light: #4b4be8;
+  --brand-bg: #f0f0ff;
+  --paper: #f5f1e8;
+  --ink: #111118;
+  --muted: #66656f;
+  --line: #d8d4ca;
+  --signal: #ff5c35;
+  --background: var(--paper);
+  --foreground: var(--ink);
 }
 
 @theme inline {
@@ -17,20 +21,28 @@
   --color-brand-dark: var(--brand-dark);
   --color-brand-light: var(--brand-light);
   --color-brand-bg: var(--brand-bg);
-  --font-sans: var(--font-nunito);
+  --font-sans: var(--font-manrope);
 }
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-nunito), system-ui, sans-serif;
+  font-family: var(--font-manrope), sans-serif;
+  overflow-x: hidden;
+  background-image: radial-gradient(rgba(17, 17, 24, 0.08) 0.65px, transparent 0.65px);
+  background-size: 7px 7px;
 }
 
-/* Жирные округлые заголовки в духе лого */
 .h-display {
-  font-weight: 900;
-  letter-spacing: 0.02em;
+  font-family: var(--font-unbounded), sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.055em;
   text-transform: uppercase;
+  line-height: 0.96;
 }
 
 .btn-brand {
@@ -41,15 +53,18 @@ body {
   background: var(--brand);
   color: #fff;
   font-weight: 800;
-  border-radius: 9999px;
-  padding: 0.75rem 1.75rem;
-  transition: background 0.15s, transform 0.1s;
+  border-radius: 0;
+  padding: 0.85rem 1.4rem;
+  min-height: 48px;
+  box-shadow: 5px 5px 0 var(--ink);
+  transition: background 0.15s, transform 0.1s, box-shadow 0.1s;
 }
 .btn-brand:hover {
   background: var(--brand-dark);
 }
 .btn-brand:active {
-  transform: scale(0.97);
+  transform: translate(3px, 3px);
+  box-shadow: 2px 2px 0 var(--ink);
 }
 .btn-brand:disabled {
   opacity: 0.5;
@@ -61,34 +76,36 @@ body {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  border: 2px solid var(--brand);
-  color: var(--brand);
+  border: 2px solid var(--ink);
+  color: var(--ink);
+  background: var(--paper);
   font-weight: 800;
-  border-radius: 9999px;
-  padding: 0.7rem 1.7rem;
+  border-radius: 0;
+  padding: 0.75rem 1.35rem;
+  min-height: 48px;
   transition: background 0.15s, color 0.15s;
 }
 .btn-outline:hover {
-  background: var(--brand);
+  background: var(--ink);
   color: #fff;
 }
 
 .card {
-  background: #fff;
-  border: 1px solid #e3e6f5;
-  border-radius: 1.25rem;
-  box-shadow: 0 2px 12px rgba(34, 34, 178, 0.06);
+  background: #fffefa;
+  border: 2px solid var(--ink);
+  border-radius: 0;
+  box-shadow: 6px 6px 0 rgba(17, 17, 24, 0.14);
 }
 
 .input {
   width: 100%;
-  border: 2px solid #d9ddf2;
-  border-radius: 0.9rem;
+  border: 2px solid var(--ink);
+  border-radius: 0;
   padding: 0.7rem 1rem;
   font-size: 1rem;
   outline: none;
   transition: border-color 0.15s;
-  background: #fff;
+  background: #fffefa;
 }
 .input:focus {
   border-color: var(--brand);
@@ -100,4 +117,58 @@ body {
   font-size: 0.875rem;
   margin-bottom: 0.35rem;
   color: var(--brand-dark);
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 3px solid var(--signal);
+  outline-offset: 3px;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.eyebrow::before {
+  content: "";
+  width: 1.75rem;
+  height: 2px;
+  background: currentColor;
+}
+
+.ticker {
+  overflow: hidden;
+  border-block: 2px solid var(--ink);
+  background: var(--brand);
+  color: white;
+}
+
+.ticker-track {
+  display: flex;
+  width: max-content;
+  animation: ticker 25s linear infinite;
+}
+
+.ticker-track span {
+  padding: 0.8rem 1.5rem;
+  font-family: var(--font-unbounded), sans-serif;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+@keyframes ticker { to { transform: translateX(-50%); } }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .ticker-track { animation: none; }
 }

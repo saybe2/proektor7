@@ -12,7 +12,8 @@ export default async function OwnerPage() {
   if (!user) redirect("/login");
   if (user.role !== "OWNER") redirect(user.role === "ADMIN" ? "/admin" : "/cabinet");
 
-  const monthAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  const monthAgo = new Date();
+  monthAgo.setDate(monthAgo.getDate() - 30);
 
   const [
     clientsTotal,

@@ -52,7 +52,14 @@ function useItems<T>(entity: Entity) {
     const data = await res.json();
     if (data.ok) setItems(data.items);
   }, [entity]);
-  useEffect(() => { reload(); }, [reload]);
+  useEffect(() => {
+    let active = true;
+    fetch(`/api/owner/content?entity=${entity}`)
+      .then((res) => res.json())
+      .then((data) => { if (active && data.ok) setItems(data.items); })
+      .catch(() => undefined);
+    return () => { active = false; };
+  }, [entity]);
   return { items, reload };
 }
 

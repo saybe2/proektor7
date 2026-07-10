@@ -23,32 +23,32 @@ export default function Header({ user }: Props) {
     user?.role === "OWNER" ? "/owner" : user?.role === "ADMIN" ? "/admin" : "/cabinet";
 
   return (
-    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-[#e3e6f5]">
-      <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
+    <header className="sticky top-0 z-50 bg-[#f5f1e8]/95 backdrop-blur border-b-2 border-[#111118]">
+      <div className="max-w-7xl mx-auto px-4 h-[68px] flex items-center justify-between gap-4">
         <Link href="/" className="flex items-center gap-2 shrink-0">
           <Image
             src="/img/logo.jpg"
             alt="Тайм-кафе Proектор"
             width={120}
             height={48}
-            className="h-12 w-auto object-contain"
+            className="h-11 w-auto object-contain mix-blend-multiply"
             priority
           />
         </Link>
 
-        <nav className="hidden md:flex items-center gap-6">
+        <nav className="hidden lg:flex items-center gap-7">
           {NAV.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className="font-bold text-[#14143c] hover:text-brand transition-colors"
+              className="text-xs font-black uppercase tracking-wider hover:text-brand transition-colors"
             >
               {item.label}
             </Link>
           ))}
         </nav>
 
-        <div className="hidden md:flex items-center gap-3">
+        <div className="hidden lg:flex items-center gap-3">
           {user ? (
             <Link href={cabinetHref} className="btn-brand !py-2 !px-5 text-sm">
               {user.role === "CLIENT" ? (
@@ -63,30 +63,32 @@ export default function Header({ user }: Props) {
               )}
             </Link>
           ) : (
-            <Link href="/login" className="btn-brand !py-2 !px-5 text-sm">
-              Войти
+            <Link href="/login" className="btn-brand !min-h-0 !py-2 !px-5 text-sm !shadow-[3px_3px_0_#111118]">
+              150 бонусов
             </Link>
           )}
         </div>
 
         <button
-          className="md:hidden p-2"
+          className="lg:hidden p-2 border-2 border-[#111118]"
           onClick={() => setOpen(!open)}
           aria-label="Меню"
+          aria-expanded={open}
+          aria-controls="mobile-navigation"
         >
-          <div className="w-6 h-0.5 bg-brand mb-1.5" />
-          <div className="w-6 h-0.5 bg-brand mb-1.5" />
-          <div className="w-6 h-0.5 bg-brand" />
+          <div className="w-5 h-0.5 bg-[#111118] mb-1.5" />
+          <div className="w-5 h-0.5 bg-[#111118] mb-1.5" />
+          <div className="w-5 h-0.5 bg-[#111118]" />
         </button>
       </div>
 
       {open && (
-        <nav className="md:hidden border-t border-[#e3e6f5] bg-white px-4 py-3 flex flex-col gap-3">
+        <nav id="mobile-navigation" className="lg:hidden border-t-2 border-[#111118] bg-[#f5f1e8] px-4 py-5 flex flex-col gap-2">
           {NAV.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className="font-bold py-1"
+              className="font-black uppercase tracking-wide py-2 border-b border-[#d8d4ca]"
               onClick={() => setOpen(false)}
             >
               {item.label}

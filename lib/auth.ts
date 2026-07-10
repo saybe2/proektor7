@@ -3,9 +3,13 @@ import { cookies } from "next/headers";
 import { db } from "./db";
 import type { Role } from "@prisma/client";
 
-const SECRET = new TextEncoder().encode(
-  process.env.AUTH_SECRET || "dev-secret"
-);
+function getSecret() {
+  const secret = process.env.AUTH_SECRET;
+  if (process.env.NODE_ENV === "production" && (!secret || secret.length < 32 || secret.includes("ЗАМЕНИТЬ"))) {
+    throw new Error("AUTH_SECRET must contain at least 32 characters in production");
+  }
+  return new TextEncoder().encode(secret || "development-only-secret-change-before-production");
+}
 const COOKIE_NAME = "proektor_session";
 const SESSION_DAYS = 90;
 
@@ -19,7 +23,7 @@ export async function createSession(userId: string, role: Role) {
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime(`${SESSION_DAYS}d`)
-    .sign(SECRET);
+    .sign(getSecret());
 
   const store = await cookies();
   store.set(COOKIE_NAME, token, {
@@ -41,7 +45,7 @@ export async function getSession(): Promise<SessionPayload | null> {
   const token = store.get(COOKIE_NAME)?.value;
   if (!token) return null;
   try {
-    const { payload } = await jwtVerify(token, SECRET);
+    const { payload } = await jwtVerify(token, getSecret());
     return {
       userId: payload.userId as string,
       role: payload.role as Role,

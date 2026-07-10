@@ -1,6 +1,7 @@
 // Сид: начальный контент и служебные аккаунты
 // Запуск: node prisma/seed.js
 
+/* eslint-disable @typescript-eslint/no-require-imports */
 const { PrismaClient } = require("@prisma/client");
 
 const db = new PrismaClient();

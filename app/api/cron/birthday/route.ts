@@ -7,6 +7,9 @@ import { runBirthdayPushes } from "@/lib/birthday";
  */
 export async function GET(req: NextRequest) {
   const secret = process.env.CRON_SECRET;
+  if (process.env.NODE_ENV === "production" && !secret) {
+    return NextResponse.json({ ok: false, error: "Cron is not configured" }, { status: 503 });
+  }
   if (secret) {
     const auth = req.headers.get("authorization");
     if (auth !== `Bearer ${secret}`) {

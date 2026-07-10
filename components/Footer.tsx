@@ -3,10 +3,10 @@ import { SITE } from "@/lib/config";
 
 export default function Footer() {
   return (
-    <footer className="bg-[#17177e] text-white mt-12 md:mt-16">
-      <div className="max-w-6xl mx-auto px-4 py-8 md:py-10 grid gap-8 sm:grid-cols-3">
+    <footer className="bg-[#111118] text-white mt-12 md:mt-20 pb-20 md:pb-0 border-t-2 border-[#111118]">
+      <div className="max-w-7xl mx-auto px-4 py-10 md:py-14 grid gap-10 sm:grid-cols-3">
         <div>
-          <div className="h-display text-xl mb-2">Proектор</div>
+          <div className="h-display text-2xl mb-3 text-[#6f72ff]">Proектор</div>
           <p className="text-white/70 text-sm">
             Тайм-кафе: комнаты с проектором, караоке, настольные игры и вкусное меню.
           </p>
@@ -41,7 +41,7 @@ export default function Footer() {
         </div>
       </div>
       <div className="border-t border-white/10 py-4 text-center text-white/50 text-xs">
-        © {new Date().getFullYear()} Тайм-кафе «Proектор» · proektor7.ru
+        {new Date().getFullYear()} Тайм-кафе «Proектор» · proektor7.ru
       </div>
     </footer>
   );

@@ -1,11 +1,12 @@
 import { db } from "./db";
+import { randomInt } from "node:crypto";
 
 const OTP_TTL_MINUTES = 5;
 const MAX_ATTEMPTS = 5;
 const RESEND_COOLDOWN_SECONDS = 60;
 
 function generateCode(): string {
-  return String(Math.floor(1000 + Math.random() * 9000)); // 4 цифры
+  return String(randomInt(1000, 10000));
 }
 
 export type SendOtpResult =
@@ -25,7 +26,11 @@ export async function sendOtp(phone: string): Promise<SendOtpResult> {
     return { ok: false, error: "Код уже отправлен. Подождите минуту." };
   }
 
-  const provider = process.env.OTP_PROVIDER || "mock";
+  const provider = process.env.OTP_PROVIDER || (process.env.NODE_ENV === "production" ? "" : "mock");
+
+  if (provider !== "smsru" && provider !== "mock") {
+    return { ok: false, error: "Сервис подтверждения номера не настроен" };
+  }
 
   if (provider === "smsru") {
     // Flash call через sms.ru: клиенту звонят, код = последние 4 цифры номера

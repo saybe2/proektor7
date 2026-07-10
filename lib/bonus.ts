@@ -1,12 +1,13 @@
 import { db } from "./db";
 import { BONUS } from "./config";
+import { randomInt } from "node:crypto";
 
 /** Генерация уникального реферального кода */
 export function generateRefCode(): string {
   const chars = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
   let code = "";
   for (let i = 0; i < 6; i++) {
-    code += chars[Math.floor(Math.random() * chars.length)];
+    code += chars[randomInt(0, chars.length)];
   }
   return code;
 }
@@ -77,6 +78,7 @@ export async function recordPurchase(params: {
 
   const user = await db.user.findUnique({ where: { id: userId } });
   if (!user) return { ok: false, error: "Клиент не найден" };
+  if (user.role !== "CLIENT") return { ok: false, error: "Операцию можно провести только для клиента" };
 
   if (bonusesToSpend > 0) {
     if (amount < BONUS.MIN_CHECK_FOR_REDEEM) {

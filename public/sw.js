@@ -4,7 +4,7 @@ self.addEventListener("push", (event) => {
   let data = { title: "Proектор", body: "", url: "/" };
   try {
     data = { ...data, ...event.data.json() };
-  } catch (e) {
+  } catch {
     if (event.data) data.body = event.data.text();
   }
 

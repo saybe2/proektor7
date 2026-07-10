@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { db } from "@/lib/db";
 import { PRICES, SITE } from "@/lib/config";
 import { IconProjector, IconUsers, IconPhone } from "@/components/icons";
+import Image from "next/image";
 
 export const dynamic = "force-dynamic";
 
@@ -10,6 +11,15 @@ export const metadata: Metadata = {
   description: `Аренда уютных комнат с проектором и приставками в тайм-кафе Proектор, ${SITE.CITY}. ${PRICES.ROOM_PER_PERSON} ₽/час с человека.`,
 };
 
+function parseImages(value: string) {
+  try {
+    const images: unknown = JSON.parse(value);
+    return Array.isArray(images) ? images.filter((item): item is string => typeof item === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
 export default async function RoomsPage() {
   const rooms = await db.room.findMany({
     where: { active: true },
@@ -17,15 +27,16 @@ export default async function RoomsPage() {
   });
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8 md:py-12">
-      <h1 className="h-display text-2xl sm:text-3xl md:text-4xl text-brand-dark text-center mb-3">
+    <div className="max-w-7xl mx-auto px-4 py-10 md:py-20">
+      <div className="eyebrow text-brand mb-4">Пространства</div>
+      <h1 className="h-display text-4xl sm:text-5xl md:text-7xl text-[#111118] mb-5">
         Наши комнаты
       </h1>
-      <p className="text-center text-[#3c3c6e] mb-3 max-w-2xl mx-auto text-sm md:text-base">
+      <p className="text-[#54535c] mb-3 max-w-2xl text-sm md:text-lg">
         Каждая комната — с большим экраном, удобными диванами и своей атмосферой.
         Оплата за время, всё остальное включено.
       </p>
-      <p className="text-center font-extrabold text-brand mb-8 md:mb-10">
+      <p className="font-extrabold text-brand mb-8 md:mb-12">
         {PRICES.ROOM_PER_PERSON} ₽/час с человека · общий зал {PRICES.HALL_PER_PERSON} ₽/час с человека
       </p>
 
@@ -35,13 +46,12 @@ export default async function RoomsPage() {
 
       <div className="grid gap-6 md:gap-8 md:grid-cols-2">
         {rooms.map((room) => {
-          const images = JSON.parse(room.images) as string[];
+          const images = parseImages(room.images);
           return (
             <div key={room.id} className="card overflow-hidden">
-              <div className="aspect-video bg-[#d9ddf2] flex items-center justify-center overflow-hidden">
+              <div className="relative aspect-video bg-[#d9ddf2] flex items-center justify-center overflow-hidden">
                 {images[0] ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={images[0]} alt={room.name} className="w-full h-full object-cover" />
+                  <Image src={images[0]} alt={room.name} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" />
                 ) : (
                   <IconProjector className="w-16 h-16 text-brand/40" />
                 )}

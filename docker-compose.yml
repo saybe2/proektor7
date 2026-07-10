@@ -8,6 +8,7 @@ services:
         NEXT_PUBLIC_VAPID_PUBLIC_KEY: "${NEXT_PUBLIC_VAPID_PUBLIC_KEY:-}"
     image: proektor7
     restart: unless-stopped
+    init: true
     ports:
       - "3000:3000"
     env_file:
@@ -28,10 +29,13 @@ services:
   cron:
     image: alpine:3.20
     restart: unless-stopped
+    init: true
     depends_on:
       - web
     env_file:
       - .env.production
+    environment:
+      TZ: "Europe/Moscow"
     command: >
       sh -c 'echo "0 12 * * * wget -qO- --header=\"Authorization: Bearer $$CRON_SECRET\" http://web:3000/api/cron/birthday" | crontab - && crond -f -l 2'
 
