@@ -143,7 +143,7 @@ export default async function HomePage() {
                   {image ? <Image src={image} alt={room.name} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover transition-transform duration-500 group-hover:scale-105" /> : <div className="h-full flex items-center justify-center"><IconProjector className="w-16 h-16 text-brand/35" /></div>}
                   <div className="absolute left-3 top-3 bg-[#ffdd38] border-2 border-[#111118] px-3 py-1 text-xs font-black">0{index + 1}</div>
                 </div>
-                <div className="p-5"><div className="flex justify-between gap-3"><h3 className="h-display text-xl">{room.name}</h3><span className="font-black text-brand whitespace-nowrap">{PRICES.ROOM_PER_PERSON} ₽</span></div><p className="text-sm text-[#66656f] mt-3 line-clamp-2">{room.description}</p><div className="mt-5 flex items-center gap-2 text-xs font-black uppercase"><IconUsers className="w-4 h-4 text-brand" /> До {room.capacity} человек</div></div>
+                <div className="p-5"><div className="flex justify-between gap-3"><h3 className="h-display text-xl">{room.name}</h3><span className="font-black text-brand whitespace-nowrap">{PRICES.ROOM_PER_PERSON} ₽</span></div><p className="text-sm text-[#66656f] mt-3 line-clamp-2">{room.description}</p><div className="mt-5 flex items-center gap-2 text-xs font-black uppercase"><IconUsers className="w-4 h-4 text-brand" /> От {room.minCapacity} до {room.capacity} человек</div></div>
               </Link>;
             })}
           </div>

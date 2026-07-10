@@ -6,7 +6,7 @@ type Entity = "room" | "menu" | "game";
 
 type Room = {
   id: string; name: string; description: string; capacity: number;
-  price: number; images: string; sort: number; active: boolean;
+  minCapacity: number; price: number; images: string; sort: number; active: boolean;
 };
 type MenuItem = {
   id: string; category: string; name: string; description: string;
@@ -99,7 +99,7 @@ function RoomsTab() {
   const [busy, setBusy] = useState(false);
 
   function startEdit(room?: Room) {
-    setEditing(room || { name: "", description: "", capacity: 4, price: 300, sort: 0, active: true });
+    setEditing(room || { name: "", description: "", minCapacity: 2, capacity: 4, price: 250, sort: 0, active: true });
     setImages(room ? JSON.parse(room.images) : []);
   }
 
@@ -110,6 +110,7 @@ function RoomsTab() {
       const result = await saveItem("room", {
         name: editing.name,
         description: editing.description || "",
+        minCapacity: Number(editing.minCapacity) || 1,
         capacity: Number(editing.capacity) || 1,
         price: Number(editing.price) || 0,
         sort: Number(editing.sort) || 0,
@@ -136,9 +137,13 @@ function RoomsTab() {
           <label className="label">Описание</label>
           <textarea className="input min-h-24" value={editing.description || ""} onChange={(e) => setEditing({ ...editing, description: e.target.value })} />
         </div>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div>
-            <label className="label">Вместимость</label>
+            <label className="label">Минимум гостей</label>
+            <input className="input" type="number" value={editing.minCapacity ?? ""} onChange={(e) => setEditing({ ...editing, minCapacity: Number(e.target.value) })} />
+          </div>
+          <div>
+            <label className="label">Максимум гостей</label>
             <input className="input" type="number" value={editing.capacity ?? ""} onChange={(e) => setEditing({ ...editing, capacity: Number(e.target.value) })} />
           </div>
           <div>
@@ -208,7 +213,7 @@ function RoomsTab() {
               {room.name} {!room.active && <span className="text-xs text-red-500">(скрыта)</span>}
             </div>
             <div className="text-sm text-[#3c3c6e]">
-              {room.price} ₽/час с чел. · до {room.capacity} чел · фото: {JSON.parse(room.images).length}
+              {room.price} ₽/час с чел. · от {room.minCapacity} до {room.capacity} чел · фото: {JSON.parse(room.images).length}
             </div>
           </div>
           <div className="flex gap-2 shrink-0">

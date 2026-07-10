@@ -89,7 +89,7 @@ export default async function RoomsPage() {
                 <p className="text-sm md:text-base text-[#3c3c6e] mt-2">{room.description}</p>
                 <div className="mt-4 flex items-center gap-2 text-sm font-semibold text-brand-dark">
                   <IconUsers className="w-4 h-4 text-brand" />
-                  до {room.capacity} человек
+                  от {room.minCapacity} до {room.capacity} человек
                 </div>
                 <a
                   href={`tel:${SITE.PHONE.replace(/[^+\d]/g, "")}`}

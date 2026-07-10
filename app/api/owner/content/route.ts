@@ -8,6 +8,7 @@ import { requireOwner } from "@/lib/auth";
 const roomSchema = z.object({
   name: z.string().min(1).max(80),
   description: z.string().max(1000).default(""),
+  minCapacity: z.number().int().min(1).max(100).default(2),
   capacity: z.number().int().min(1).max(100),
   price: z.number().int().min(0),
   images: z.array(z.string()).default([]),
