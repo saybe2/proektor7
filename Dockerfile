@@ -29,14 +29,16 @@ ENV DATABASE_URL="file:/data/prod.db"
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 
+# Prisma CLI использует транзитивные пакеты, поэтому переносим полный набор
+# установленных зависимостей из Linux-сборщика.
+COPY --from=builder /app/node_modules ./node_modules
+
 # standalone-сборка Next.js
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
 
-# Prisma CLI для применения схемы при старте + сид
-COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+# Схема и сид для инициализации базы при старте
 COPY --from=builder /app/prisma ./prisma
 
 COPY docker-entrypoint.sh ./
