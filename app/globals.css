@@ -159,7 +159,7 @@ select:focus-visible {
 }
 
 .ticker-track span {
-  padding: 0.8rem 1.5rem;
+  padding: 0.8rem 0;
   font-family: var(--font-unbounded), sans-serif;
   font-size: 0.72rem;
   font-weight: 800;
