@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { BONUS, PRICES, SITE } from "@/lib/config";
+import { DEFAULT_ROOMS } from "@/lib/rooms";
 import {
   IconClock,
   IconDice,
@@ -31,7 +32,10 @@ const SERVICES = [
 ];
 
 export default async function HomePage() {
-  const rooms = await db.room.findMany({ where: { active: true }, orderBy: { sort: "asc" }, take: 3 });
+  const databaseRooms = await db.room.findMany({ where: { active: true }, orderBy: { sort: "asc" }, take: 3 });
+  const rooms = databaseRooms.some((room) => parseImages(room.images).length > 0)
+    ? databaseRooms
+    : DEFAULT_ROOMS.slice(0, 3);
   const ticker = "КОМНАТЫ 250 ₽/ЧАС С ЧЕЛОВЕКА · ОБЩИЙ ЗАЛ 150 ₽/ЧАС С ЧЕЛОВЕКА · КАРАОКЕ 500 ₽/ЧАС · ";
 
   return (

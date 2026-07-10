@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { PRICES, SITE } from "@/lib/config";
 import { IconProjector, IconUsers, IconPhone } from "@/components/icons";
 import Image from "next/image";
+import { DEFAULT_ROOMS } from "@/lib/rooms";
 
 export const dynamic = "force-dynamic";
 
@@ -21,10 +22,13 @@ function parseImages(value: string) {
 }
 
 export default async function RoomsPage() {
-  const rooms = await db.room.findMany({
+  const databaseRooms = await db.room.findMany({
     where: { active: true },
     orderBy: { sort: "asc" },
   });
+  const rooms = databaseRooms.some((room) => parseImages(room.images).length > 0)
+    ? databaseRooms
+    : DEFAULT_ROOMS;
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-10 md:py-20">
@@ -57,14 +61,15 @@ export default async function RoomsPage() {
                 )}
               </div>
               {images.length > 1 && (
-                <div className="flex gap-2 p-2 overflow-x-auto">
+                <div className="flex gap-2 p-2 overflow-x-auto snap-x">
                   {images.slice(1).map((src, i) => (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
+                    <Image
                       key={i}
                       src={src}
                       alt={`${room.name} фото ${i + 2}`}
-                      className="h-16 w-28 md:h-20 md:w-32 object-cover rounded-lg shrink-0"
+                      width={256}
+                      height={192}
+                      className="h-20 w-28 md:h-24 md:w-36 object-cover shrink-0 snap-start border border-[#111118]"
                     />
                   ))}
                 </div>
