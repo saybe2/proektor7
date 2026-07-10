@@ -76,6 +76,8 @@ git pull
 docker compose up -d --build
 ```
 
+По умолчанию контейнер доступен на порту `3002`. Порт хоста можно изменить через `APP_PORT` в `.env.production`.
+
 Данные не теряются: БД и загруженные фото лежат в Docker-вольюмах
 (`proektor_db`, `proektor_uploads`).
 
