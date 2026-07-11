@@ -78,6 +78,8 @@ docker compose up -d --build
 
 По умолчанию контейнер доступен на порту `3002`. Порт хоста можно изменить через `APP_PORT` в `.env.production`.
 
+При тестировании напрямую по `http://IP:3002` укажите `AUTH_COOKIE_SECURE="false"`. После подключения HTTPS верните `true`.
+
 Данные не теряются: БД и загруженные фото лежат в Docker-вольюмах
 (`proektor_db`, `proektor_uploads`).
 

@@ -13,6 +13,12 @@ function getSecret() {
 const COOKIE_NAME = "proektor_session";
 const SESSION_DAYS = 90;
 
+function shouldUseSecureCookie() {
+  if (process.env.AUTH_COOKIE_SECURE === "false") return false;
+  if (process.env.AUTH_COOKIE_SECURE === "true") return true;
+  return process.env.NODE_ENV === "production";
+}
+
 export type SessionPayload = {
   userId: string;
   role: Role;
@@ -28,7 +34,7 @@ export async function createSession(userId: string, role: Role) {
   const store = await cookies();
   store.set(COOKIE_NAME, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: shouldUseSecureCookie(),
     sameSite: "lax",
     maxAge: SESSION_DAYS * 24 * 60 * 60,
     path: "/",
