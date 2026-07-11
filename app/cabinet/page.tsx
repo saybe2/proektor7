@@ -42,10 +42,10 @@ export default async function CabinetPage() {
       </div>
 
       {/* Баланс */}
-      <div className="card bg-gradient-to-r from-[#2222b2] to-[#4747d1] !border-0 text-white p-8 text-center mb-6">
-        <div className="text-white/80 font-semibold">Твои бонусы</div>
-        <div className="text-5xl font-black my-2">{user.bonusBalance}</div>
-        <div className="text-white/70 text-sm">
+      <div className="card !bg-[#2020c7] !border-[#111118] text-white p-8 text-center mb-6">
+        <div className="text-[#dadaff] font-semibold">Твои бонусы</div>
+        <div className="text-5xl font-black my-2 text-white">{user.bonusBalance}</div>
+        <div className="text-[#dadaff] text-sm">
           1 бонус = 1 ₽ · оплата до {BONUS.MAX_REDEEM_PERCENT}% чека (от {BONUS.MIN_CHECK_FOR_REDEEM} ₽)
         </div>
       </div>
