@@ -63,18 +63,27 @@ async function main() {
   }
 
   // === Меню ===
+  // RESET_MENU=1 заменяет прежнее меню актуальным списком.
+  if (process.env.RESET_MENU === "1") {
+    await db.menuItem.deleteMany();
+  }
   if ((await db.menuItem.count()) === 0) {
     await db.menuItem.createMany({
       data: [
-        { category: "Напитки", name: "Чай в ассортименте", description: "Чёрный, зелёный, фруктовый", price: 100, sort: 1 },
-        { category: "Напитки", name: "Кофе американо", price: 120, sort: 2 },
-        { category: "Напитки", name: "Капучино", price: 150, sort: 3 },
-        { category: "Напитки", name: "Лимонад домашний", price: 180, sort: 4 },
-        { category: "Снеки", name: "Попкорн", description: "Солёный или сладкий", price: 150, sort: 1 },
-        { category: "Снеки", name: "Начос с соусом", price: 200, sort: 2 },
-        { category: "Снеки", name: "Пицца маргарита", price: 450, sort: 3 },
-        { category: "Десерты", name: "Чизкейк", price: 220, sort: 1 },
-        { category: "Десерты", name: "Мороженое", description: "3 шарика на выбор", price: 180, sort: 2 },
+        { category: "Комбо-наборы", name: "Комбо 1", description: "Фри или картофель по-деревенски, луковые кольца, колбаски и 2 соуса", price: 400, sort: 1 },
+        { category: "Комбо-наборы", name: "Комбо 2", description: "Фри или картофель по-деревенски, наггетсы, колбаски и 2 соуса", price: 450, sort: 2 },
+        { category: "Комбо-наборы", name: "Комбо 3", description: "Стрипсы, колбаски, пельмени и 2 соуса", price: 500, sort: 3 },
+        { category: "Комбо-наборы", name: "Комбо 4", description: "Крылья, стрипсы, колбаски и 2 соуса", price: 550, sort: 4 },
+        { category: "Комбо-наборы", name: "Комбо 5", description: "Фри или картофель по-деревенски, крылья, луковые кольца и 2 соуса", price: 550, sort: 5 },
+        { category: "Наборы", name: "Набор 1", description: "Фри или картофель по-деревенски, наггетсы и соус", price: 300, sort: 1 },
+        { category: "Наборы", name: "Набор 2", description: "Фри или картофель по-деревенски, стрипсы и соус", price: 350, sort: 2 },
+        { category: "Наборы", name: "Набор 3", description: "Фри или картофель по-деревенски, крылья и соус", price: 350, sort: 3 },
+        { category: "По отдельности", name: "Фри / картофель по-деревенски", price: 150, sort: 1 },
+        { category: "По отдельности", name: "Пельмени", price: 300, sort: 2 },
+        { category: "По отдельности", name: "Креветки", price: 300, sort: 3 },
+        { category: "По отдельности", name: "Соус", price: 80, sort: 4 },
+        { category: "Напитки", name: "Авторские лимонады", description: "Клубничный, ягодный или цитрусовый", price: 700, sort: 1 },
+        { category: "Напитки", name: "Авторский чай", price: 700, sort: 2 },
       ],
     });
   }

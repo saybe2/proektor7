@@ -4,9 +4,9 @@ import { db } from "@/lib/db";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Меню — напитки, снеки, десерты",
+  title: "Меню — комбо, горячие закуски и напитки",
   description:
-    "Меню тайм-кафе Proектор: кофе, чай, лимонады, снеки и десерты по приятным ценам.",
+    "Меню тайм-кафе Proектор: комбо-наборы, горячие закуски, авторские лимонады и чай.",
 };
 
 export default async function MenuPage() {
@@ -30,6 +30,10 @@ export default async function MenuPage() {
       <p className="text-center text-[#3c3c6e] mb-10">
         Оплачивай бонусами до 50% чека (при заказе от 500 ₽)
       </p>
+
+      <div className="border-2 border-[#111118] bg-[#ffdd38] px-4 py-3 mb-8 text-sm font-bold text-center">
+        Раздел напитков дополняется — скоро добавим остальные позиции.
+      </div>
 
       {byCategory.size === 0 && (
         <p className="text-center text-[#3c3c6e]">Меню скоро появится!</p>
