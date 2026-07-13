@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { BONUS, BIRTHDAY_PUSH } from "@/lib/config";
 import { IconGift, IconPercent, IconUsers, IconCake } from "@/components/icons";
+import { getCurrentUser } from "@/lib/auth";
 
 export const metadata: Metadata = {
   title: "Бонусная программа и акции",
@@ -9,7 +10,9 @@ export const metadata: Metadata = {
     "150 бонусов за регистрацию, кэшбэк 1%, 3% от покупок друга, скидка 10% на день рождения. Бонусная программа тайм-кафе Proектор.",
 };
 
-export default function BonusPage() {
+export default async function BonusPage() {
+  const user = await getCurrentUser();
+  const cabinetHref = user?.role === "OWNER" ? "/owner" : user?.role === "ADMIN" ? "/admin" : "/cabinet";
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 md:py-12">
       <h1 className="h-display text-2xl sm:text-3xl md:text-4xl text-brand-dark text-center mb-3">
@@ -76,9 +79,11 @@ export default function BonusPage() {
       </div>
 
       <div className="text-center mt-8 md:mt-10">
-        <Link href="/login" className="btn-brand">
-          Получить {BONUS.WELCOME} бонусов
-        </Link>
+        {user ? (
+          <Link href={cabinetHref} className="btn-brand">Открыть личный кабинет</Link>
+        ) : (
+          <Link href="/login" className="btn-brand">Получить {BONUS.WELCOME} бонусов</Link>
+        )}
       </div>
     </div>
   );

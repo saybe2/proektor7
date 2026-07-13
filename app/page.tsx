@@ -3,6 +3,7 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { BONUS, PRICES, SITE } from "@/lib/config";
 import { DEFAULT_ROOMS } from "@/lib/rooms";
+import { getCurrentUser } from "@/lib/auth";
 import {
   IconClock,
   IconDice,
@@ -32,6 +33,8 @@ const SERVICES = [
 ];
 
 export default async function HomePage() {
+  const currentUser = await getCurrentUser();
+  const cabinetHref = currentUser?.role === "OWNER" ? "/owner" : currentUser?.role === "ADMIN" ? "/admin" : "/cabinet";
   const databaseRooms = await db.room.findMany({ where: { active: true }, orderBy: { sort: "asc" }, take: 3 });
   const rooms = databaseRooms.some((room) => parseImages(room.images).length > 0)
     ? databaseRooms
@@ -157,7 +160,7 @@ export default async function HomePage() {
           <div className="relative grid md:grid-cols-[1.1fr_.9fr] gap-10 items-center">
             <div><div className="eyebrow text-white/70 mb-4">Бонусная система</div><h2 className="h-display text-4xl md:text-6xl">Быть своим выгодно</h2><p className="mt-5 max-w-xl text-white/75">Получите {BONUS.WELCOME} бонусов при регистрации, возвращайте {BONUS.CASHBACK_PERCENT}% с покупок и {BONUS.REFERRAL_PERCENT}% с покупок приглашённых друзей.</p></div>
             <div className="bg-[#fffefa] text-[#111118] border-2 border-[#111118] p-6 md:p-8 rotate-[-2deg]">
-              <IconGift className="w-10 h-10 text-brand mb-4" /><div className="h-display text-4xl">{BONUS.WELCOME} бонусов</div><p className="mt-3 text-sm text-[#66656f]">Списывайте до {BONUS.MAX_REDEEM_PERCENT}% покупки при чеке от {BONUS.MIN_CHECK_FOR_REDEEM} ₽.</p><Link href="/login" className="btn-brand mt-6 w-full">Зарегистрироваться</Link>
+              <IconGift className="w-10 h-10 text-brand mb-4" /><div className="h-display text-4xl">{BONUS.WELCOME} бонусов</div><p className="mt-3 text-sm text-[#66656f]">Списывайте до {BONUS.MAX_REDEEM_PERCENT}% покупки при чеке от {BONUS.MIN_CHECK_FOR_REDEEM} ₽.</p>{currentUser ? <Link href={cabinetHref} className="btn-brand mt-6 w-full">Открыть личный кабинет</Link> : <Link href="/login" className="btn-brand mt-6 w-full">Зарегистрироваться</Link>}
             </div>
           </div>
         </div>

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import MobileMenu from "@/components/MobileMenu";
 
 const NAV = [
   { href: "/rooms", label: "Комнаты" },
@@ -64,36 +65,7 @@ export default function Header({ user }: Props) {
           )}
         </div>
 
-        <details className="mobile-menu lg:hidden">
-          <summary
-            className="p-2 border-2 border-[#111118] cursor-pointer list-none"
-            aria-label="Открыть меню"
-          >
-            <span className="mobile-menu-icon block" aria-hidden="true">
-              <span className="block w-5 h-0.5 bg-[#111118] mb-1.5" />
-              <span className="block w-5 h-0.5 bg-[#111118] mb-1.5" />
-              <span className="block w-5 h-0.5 bg-[#111118]" />
-            </span>
-          </summary>
-
-          <nav id="mobile-navigation" className="absolute left-0 right-0 top-full border-t-2 border-b-2 border-[#111118] bg-[#f5f1e8] px-4 py-5 flex flex-col gap-2 shadow-[0_8px_0_rgba(17,17,24,.14)]">
-            {NAV.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="font-black uppercase tracking-wide py-2 border-b border-[#d8d4ca]"
-              >
-                {item.label}
-              </Link>
-            ))}
-            <Link
-              href={user ? cabinetHref : "/login"}
-              className="btn-brand text-center mt-2"
-            >
-              {user ? "Личный кабинет" : "Войти"}
-            </Link>
-          </nav>
-        </details>
+        <MobileMenu items={NAV} cabinetHref={cabinetHref} authenticated={Boolean(user)} />
       </div>
     </header>
   );
