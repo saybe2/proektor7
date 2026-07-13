@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { IconProjector } from "@/components/icons";
 
 type Props = {
@@ -12,6 +12,19 @@ type Props = {
 export default function RoomGallery({ images, roomName }: Props) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [current, setCurrent] = useState(0);
+  const [fullscreen, setFullscreen] = useState(false);
+  const [zoom, setZoom] = useState(1);
+
+  useEffect(() => {
+    if (!fullscreen) return;
+    const close = (event: KeyboardEvent) => event.key === "Escape" && setFullscreen(false);
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", close);
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", close);
+    };
+  }, [fullscreen]);
 
   function showImage(index: number) {
     const next = (index + images.length) % images.length;
@@ -44,7 +57,7 @@ export default function RoomGallery({ images, roomName }: Props) {
         aria-label={`Фотографии: ${roomName}`}
       >
         {images.map((src, index) => (
-          <div key={src} className="relative aspect-[4/3] min-w-full snap-center">
+          <button key={src} type="button" onClick={() => { setZoom(1); setFullscreen(true); }} className="relative aspect-[4/3] min-w-full snap-center cursor-zoom-in">
             <Image
               src={src}
               alt={`${roomName}, фотография ${index + 1} из ${images.length}`}
@@ -53,7 +66,7 @@ export default function RoomGallery({ images, roomName }: Props) {
               className="object-cover"
               priority={index === 0}
             />
-          </div>
+          </button>
         ))}
       </div>
 
@@ -93,6 +106,34 @@ export default function RoomGallery({ images, roomName }: Props) {
             {current + 1} / {images.length}
           </div>
         </>
+      )}
+
+      <button type="button" onClick={() => { setZoom(1); setFullscreen(true); }} className="absolute left-3 top-3 bg-[#fffefa] border-2 border-[#111118] px-3 py-1.5 text-xs font-black shadow-[2px_2px_0_#111118]">
+        Открыть фото
+      </button>
+
+      {fullscreen && (
+        <div className="fixed inset-0 z-[100] bg-[#111118]/95 flex flex-col" role="dialog" aria-modal="true" aria-label={`Просмотр фотографий: ${roomName}`}>
+          <div className="flex items-center justify-between gap-3 p-3 text-white">
+            <div className="font-black text-sm">{roomName} · {current + 1} / {images.length}</div>
+            <div className="flex gap-2">
+              <button type="button" className="photo-viewer-button" onClick={() => setZoom((value) => Math.max(1, value - 0.5))} aria-label="Уменьшить">−</button>
+              <button type="button" className="photo-viewer-button" onClick={() => setZoom((value) => Math.min(3, value + 0.5))} aria-label="Увеличить">+</button>
+              <button type="button" className="photo-viewer-button" onClick={() => setFullscreen(false)} aria-label="Закрыть">×</button>
+            </div>
+          </div>
+          <div className="relative flex-1 overflow-auto touch-pan-x touch-pan-y" onDoubleClick={() => setZoom((value) => value === 1 ? 2 : 1)}>
+            <div className="relative min-h-full min-w-full transition-transform duration-200" style={{ transform: `scale(${zoom})` }}>
+              <Image src={images[current]} alt={`${roomName}, увеличенная фотография ${current + 1}`} fill sizes="100vw" className="object-contain" />
+            </div>
+          </div>
+          {images.length > 1 && (
+            <div className="flex justify-center gap-3 p-4">
+              <button type="button" className="btn-outline !bg-white !min-h-0" onClick={() => { showImage(current - 1); setZoom(1); }}>Предыдущее</button>
+              <button type="button" className="btn-outline !bg-white !min-h-0" onClick={() => { showImage(current + 1); setZoom(1); }}>Следующее</button>
+            </div>
+          )}
+        </div>
       )}
     </div>
   );

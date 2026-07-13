@@ -10,7 +10,7 @@ type Client = {
   createdAt: string;
 };
 
-export default function AdminPanel() {
+export default function AdminPanel({ isOwner }: { isOwner: boolean }) {
   const [query, setQuery] = useState("");
   const [clients, setClients] = useState<Client[]>([]);
   const [selected, setSelected] = useState<Client | null>(null);
@@ -95,7 +95,7 @@ export default function AdminPanel() {
               >
                 <div>
                   <div className="font-bold text-brand-dark">{c.name || "Без имени"}</div>
-                  <div className="text-sm text-[#3c3c6e]">+{c.phone}</div>
+                  <div className="text-sm text-[#3c3c6e]">{isOwner ? `+${c.phone}` : `Номер заканчивается на ${c.phone}`}</div>
                 </div>
                 <div className="font-extrabold text-brand">{c.bonusBalance} б.</div>
               </button>
@@ -108,7 +108,7 @@ export default function AdminPanel() {
       {selected && (
         <div className="card p-6">
           <h2 className="font-extrabold text-lg text-brand-dark mb-1">
-            Чек для: {selected.name || "клиент"} (+{selected.phone})
+            Чек для: {selected.name || "клиент"} ({isOwner ? `+${selected.phone}` : `••• ${selected.phone}`})
           </h2>
           <p className="text-sm text-[#3c3c6e] mb-4">
             На счету: <b>{selected.bonusBalance} бонусов</b>
@@ -162,7 +162,7 @@ export default function AdminPanel() {
       )}
 
       {/* Ручная корректировка бонусов */}
-      {selected && (
+      {selected && isOwner && (
         <AdjustBonus
           client={selected}
           onDone={() => search()}

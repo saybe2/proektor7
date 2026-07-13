@@ -72,6 +72,11 @@ export default async function OwnerPage() {
       </div>
 
       {/* Касса тоже доступна владельцу */}
+      <div className="grid md:grid-cols-2 gap-6 mb-6">
+        <div className="card p-6 flex items-center justify-between gap-4"><div><div className="font-extrabold text-brand-dark">База клиентов</div><p className="text-sm text-[#3c3c6e]">Телефоны, чеки, бонусы и приглашённые друзья</p></div><Link href="/owner/clients" className="btn-brand !py-2 !px-4 text-sm shrink-0">Открыть</Link></div>
+        <div className="card p-6 flex items-center justify-between gap-4"><div><div className="font-extrabold text-brand-dark">Подробная выручка</div><p className="text-sm text-[#3c3c6e]">Чеки по периодам, клиентам и администраторам</p></div><Link href="/owner/revenue" className="btn-brand !py-2 !px-4 text-sm shrink-0">Открыть</Link></div>
+      </div>
+
       <div className="card p-6 mb-6 flex items-center justify-between gap-4">
         <div>
           <div className="font-extrabold text-brand-dark">Касса</div>

@@ -210,6 +210,34 @@ select:focus-visible {
   stroke-linejoin: miter;
 }
 
+.booking-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.booking-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: -50% auto -50% -35%;
+  width: 22%;
+  transform: rotate(18deg);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.75), transparent);
+  animation: booking-shimmer 3.2s ease-in-out infinite;
+}
+@keyframes booking-shimmer {
+  0%, 55% { left: -35%; }
+  100% { left: 125%; }
+}
+.photo-viewer-button {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  place-items: center;
+  border: 2px solid white;
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 900;
+}
+
 @keyframes ticker { to { transform: translateX(-50%); } }
 
 @media (prefers-reduced-motion: reduce) {

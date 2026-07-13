@@ -43,4 +43,6 @@ export const SITE = {
   MAP_YANDEX: "https://yandex.ru/maps/org/proyektor/63843978209/",
   MAP_2GIS:
     "https://2gis.ru/nabchelny/inside/4082022817479740/firm/70000001029411730/",
+  TELEGRAM_URL: process.env.NEXT_PUBLIC_TELEGRAM_URL || "https://t.me/share/url?url=https%3A%2F%2Fproektor7.ru",
+  MAX_URL: process.env.NEXT_PUBLIC_MAX_URL || "https://max.ru/",
 } as const;

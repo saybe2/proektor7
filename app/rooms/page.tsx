@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { db } from "@/lib/db";
 import { PRICES, SITE } from "@/lib/config";
-import { IconUsers, IconPhone } from "@/components/icons";
+import { IconUsers } from "@/components/icons";
 import { DEFAULT_ROOMS } from "@/lib/rooms";
 import RoomGallery from "@/components/RoomGallery";
+import BookingActions from "@/components/BookingActions";
 
 export const dynamic = "force-dynamic";
 
@@ -71,13 +72,7 @@ export default async function RoomsPage() {
                   <IconUsers className="w-4 h-4 text-brand" />
                   от {room.minCapacity} до {room.capacity} человек
                 </div>
-                <a
-                  href={`tel:${SITE.PHONE.replace(/[^+\d]/g, "")}`}
-                  className="btn-brand w-full mt-5"
-                >
-                  <IconPhone className="w-4 h-4" />
-                  Забронировать
-                </a>
+                <BookingActions roomName={room.name} />
               </div>
             </div>
           );

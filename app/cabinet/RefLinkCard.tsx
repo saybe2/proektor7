@@ -13,7 +13,19 @@ export default function RefLinkCard({
 }) {
   const [copied, setCopied] = useState(false);
 
-  async function copy() {
+  async function share() {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "Встретимся в Proекторе",
+          text: `Регистрируйся по моей ссылке в тайм-кафе Proектор. Мой код: ${refCode}`,
+          url: refLink,
+        });
+        return;
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") return;
+      }
+    }
     try {
       await navigator.clipboard.writeText(refLink);
       setCopied(true);
@@ -34,8 +46,8 @@ export default function RefLinkCard({
       </p>
       <div className="flex gap-2">
         <input className="input text-sm" readOnly value={refLink} onFocus={(e) => e.target.select()} />
-        <button className="btn-brand !px-4 shrink-0" onClick={copy}>
-          {copied ? "Готово" : "Копировать"}
+        <button className="btn-brand !px-4 shrink-0" onClick={share}>
+          {copied ? "Ссылка скопирована" : "Поделиться"}
         </button>
       </div>
     </div>

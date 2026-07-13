@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
-import { requireStaff } from "@/lib/auth";
+import { requireOwner } from "@/lib/auth";
 
 const schema = z.object({
   userId: z.string(),
@@ -12,7 +12,7 @@ const schema = z.object({
 export async function POST(req: NextRequest) {
   let staff;
   try {
-    staff = await requireStaff();
+    staff = await requireOwner();
   } catch {
     return NextResponse.json({ ok: false, error: "Нет доступа" }, { status: 403 });
   }

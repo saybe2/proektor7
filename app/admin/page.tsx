@@ -18,7 +18,7 @@ export default async function AdminPage() {
         </h1>
         <LogoutButton />
       </div>
-      <AdminPanel />
+      <AdminPanel isOwner={user.role === "OWNER"} />
     </div>
   );
 }
