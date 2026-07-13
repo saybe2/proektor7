@@ -46,6 +46,8 @@ export default function Header({ user }: Props) {
 
         <div className="hidden lg:flex items-center gap-3">
           {user ? (
+            <>
+            <Link href="/settings" className="text-xs font-black uppercase tracking-wider hover:text-brand">Настройки</Link>
             <Link href={cabinetHref} className="btn-brand !py-2 !px-5 text-sm">
               {user.role === "CLIENT" ? (
                 <>
@@ -58,6 +60,7 @@ export default function Header({ user }: Props) {
                 "Панель"
               )}
             </Link>
+            </>
           ) : (
             <Link href="/login" className="btn-brand !min-h-0 !py-2 !px-5 text-sm !shadow-[3px_3px_0_#111118]">
               150 бонусов

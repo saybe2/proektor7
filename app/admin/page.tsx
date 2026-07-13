@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import AdminPanel from "./AdminPanel";
 import LogoutButton from "../cabinet/LogoutButton";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +19,7 @@ export default async function AdminPage() {
         </h1>
         <LogoutButton />
       </div>
+      <Link href="/settings" className="btn-outline w-full mb-6">Настройки профиля и уведомлений</Link>
       <AdminPanel isOwner={user.role === "OWNER"} />
     </div>
   );

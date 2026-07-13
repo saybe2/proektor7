@@ -11,10 +11,11 @@ function urlBase64ToUint8Array(base64String: string) {
   return arr;
 }
 
-export default function PushToggle() {
+export default function PushToggle({ alwaysVisible = false }: { alwaysVisible?: boolean }) {
   const [supported] = useState(() => typeof window !== "undefined" && "serviceWorker" in navigator && "PushManager" in window);
   const [subscribed, setSubscribed] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (!supported) return;
@@ -26,6 +27,7 @@ export default function PushToggle() {
 
   async function toggle() {
     setLoading(true);
+    setError("");
     try {
       const reg = await navigator.serviceWorker.ready;
       const existing = await reg.pushManager.getSubscription();
@@ -43,11 +45,14 @@ export default function PushToggle() {
 
       const vapid = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
       if (!vapid) {
-        alert("Пуш-уведомления пока не настроены на сервере");
+        setError("Уведомления пока не настроены на сервере.");
         return;
       }
       const permission = await Notification.requestPermission();
-      if (permission !== "granted") return;
+      if (permission !== "granted") {
+        setError("Браузер не получил разрешение. Проверьте настройки уведомлений для сайта.");
+        return;
+      }
 
       const sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
@@ -65,20 +70,22 @@ export default function PushToggle() {
     }
   }
 
-  if (!supported) return null;
+  if (!supported && !alwaysVisible) return null;
 
   return (
-    <div className="card p-6 flex items-center justify-between gap-4">
+    <div className="card p-5 md:p-7 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
         <div className="font-extrabold text-brand-dark">Уведомления</div>
         <p className="text-sm text-[#3c3c6e]">
           Акции, скидки и напоминание о подарке на день рождения
         </p>
+        {!supported && <p className="text-sm font-bold text-red-600 mt-2">Этот браузер не поддерживает web-push. На iPhone установите сайт на экран «Домой» и откройте его с иконки.</p>}
+        {error && <p className="text-sm font-bold text-red-600 mt-2">{error}</p>}
       </div>
       <button
         className={subscribed ? "btn-outline !py-2 !px-4 text-sm shrink-0" : "btn-brand !py-2 !px-4 text-sm shrink-0"}
         onClick={toggle}
-        disabled={loading}
+        disabled={loading || !supported}
       >
         {subscribed ? "Отключить" : "Включить"}
       </button>

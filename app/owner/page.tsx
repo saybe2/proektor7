@@ -60,6 +60,7 @@ export default async function OwnerPage() {
         </h1>
         <LogoutButton />
       </div>
+      <Link href="/settings" className="btn-outline w-full mb-6">Настройки профиля и уведомлений</Link>
 
       {/* Статистика */}
       <div className="grid gap-4 grid-cols-2 md:grid-cols-4 mb-8">

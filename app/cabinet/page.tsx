@@ -3,7 +3,6 @@ import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { SITE, BONUS } from "@/lib/config";
 import RefLinkCard from "./RefLinkCard";
-import PushToggle from "./PushToggle";
 import LogoutButton from "./LogoutButton";
 
 export const dynamic = "force-dynamic";
@@ -52,9 +51,6 @@ export default async function CabinetPage() {
 
       {/* Реферальная ссылка */}
       <RefLinkCard refLink={refLink} refCode={user.refCode} referralsCount={referralsCount} />
-
-      {/* Пуши */}
-      <PushToggle />
 
       {/* История */}
       <div className="card p-6 mt-6">

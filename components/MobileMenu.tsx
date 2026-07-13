@@ -37,6 +37,7 @@ export default function MobileMenu({ items, cabinetHref, authenticated }: { item
         <Link href={authenticated ? cabinetHref : "/login"} onClick={closeMenu} className="btn-brand text-center mt-2">
           {authenticated ? "Личный кабинет" : "Войти"}
         </Link>
+        {authenticated && <Link href="/settings" onClick={closeMenu} className="btn-outline text-center">Настройки</Link>}
       </nav>
     </details>
   );
