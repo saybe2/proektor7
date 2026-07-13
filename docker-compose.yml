@@ -6,6 +6,8 @@ services:
         NEXT_PUBLIC_SITE_URL: "https://proektor7.ru"
         # публичный VAPID-ключ (тот же, что в .env.production)
         NEXT_PUBLIC_VAPID_PUBLIC_KEY: "${NEXT_PUBLIC_VAPID_PUBLIC_KEY:-}"
+        NEXT_PUBLIC_TELEGRAM_URL: "${NEXT_PUBLIC_TELEGRAM_URL:-}"
+        NEXT_PUBLIC_MAX_URL: "${NEXT_PUBLIC_MAX_URL:-}"
     image: proektor7
     restart: unless-stopped
     init: true
