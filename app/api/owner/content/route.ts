@@ -21,6 +21,7 @@ const menuSchema = z.object({
   name: z.string().min(1).max(80),
   description: z.string().max(300).default(""),
   price: z.number().int().min(0),
+  image: z.string().max(500).nullable().optional(),
   sort: z.number().int().default(0),
   available: z.boolean().default(true),
 });

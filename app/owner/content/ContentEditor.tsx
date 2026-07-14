@@ -10,7 +10,7 @@ type Room = {
 };
 type MenuItem = {
   id: string; category: string; name: string; description: string;
-  price: number; sort: number; available: boolean;
+  price: number; image: string | null; sort: number; available: boolean;
 };
 type Game = {
   id: string; name: string; description: string; players: string; sort: number;
@@ -242,6 +242,7 @@ function MenuTab() {
         name: editing.name,
         description: editing.description || "",
         price: Number(editing.price) || 0,
+        image: editing.image || null,
         sort: Number(editing.sort) || 0,
         available: editing.available ?? true,
       }, editing.id);
@@ -271,6 +272,39 @@ function MenuTab() {
           <label className="label">Описание</label>
           <input className="input" value={editing.description || ""} onChange={(e) => setEditing({ ...editing, description: e.target.value })} />
         </div>
+        <div>
+          <label className="label">Фотография (необязательно)</label>
+          {editing.image ? (
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={editing.image} alt={editing.name || "Позиция меню"} className="h-32 w-44 object-cover border-2 border-[#111118]" />
+              <button type="button" className="btn-outline" onClick={() => setEditing({ ...editing, image: null })}>Удалить фотографию</button>
+            </div>
+          ) : (
+            <label className="h-32 w-full sm:w-52 border-2 border-dashed border-[#111118] flex items-center justify-center cursor-pointer text-brand font-black text-sm hover:bg-brand-bg">
+              {busy ? "Загрузка..." : "+ Добавить фото"}
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="hidden"
+                disabled={busy}
+                onChange={async (event) => {
+                  const file = event.target.files?.[0];
+                  if (!file) return;
+                  setBusy(true);
+                  try {
+                    const url = await uploadPhoto(file);
+                    if (url) setEditing({ ...editing, image: url });
+                  } finally {
+                    setBusy(false);
+                    event.target.value = "";
+                  }
+                }}
+              />
+            </label>
+          )}
+          <p className="text-xs text-[#66656f] mt-2">JPG, PNG или WebP, максимум 8 МБ.</p>
+        </div>
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="label">Цена, ₽</label>
@@ -297,16 +331,22 @@ function MenuTab() {
 
   return (
     <div className="space-y-3">
-      <button className="btn-brand" onClick={() => setEditing({ category: "", name: "", price: 0, sort: 0, available: true })}>
+      <button className="btn-brand" onClick={() => setEditing({ category: "", name: "", price: 0, image: null, sort: 0, available: true })}>
         + Добавить позицию
       </button>
       {items.map((item) => (
         <div key={item.id} className="card p-4 flex items-center justify-between gap-3">
-          <div>
+          <div className="flex items-center gap-3">
+            {item.image && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={item.image} alt="" className="h-14 w-16 object-cover border border-[#111118] shrink-0" />
+            )}
+            <div>
             <div className="font-bold text-brand-dark">
               {item.name} {!item.available && <span className="text-xs text-red-500">(нет)</span>}
             </div>
             <div className="text-sm text-[#3c3c6e]">{item.category} · {item.price} ₽</div>
+            </div>
           </div>
           <div className="flex gap-2 shrink-0">
             <button className="btn-outline !py-1.5 !px-3 text-sm" onClick={() => setEditing(item)}>Изменить</button>

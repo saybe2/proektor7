@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { db } from "@/lib/db";
+import Image from "next/image";
 
 export const dynamic = "force-dynamic";
 
@@ -43,19 +44,15 @@ export default async function MenuPage() {
         {[...byCategory.entries()].map(([category, list]) => (
           <section key={category}>
             <h2 className="h-display text-xl text-brand mb-4">{category}</h2>
-            <div className="card divide-y divide-[#eef0fa]">
+            <div className="grid sm:grid-cols-2 gap-4">
               {list.map((item) => (
-                <div key={item.id} className="flex items-center justify-between gap-4 p-4">
-                  <div>
-                    <div className="font-bold text-brand-dark">{item.name}</div>
-                    {item.description && (
-                      <div className="text-sm text-[#3c3c6e]">{item.description}</div>
-                    )}
+                <article key={item.id} className="card overflow-hidden flex flex-col">
+                  {item.image && <div className="relative aspect-[16/10] border-b-2 border-[#111118]"><Image src={item.image} alt={item.name} fill sizes="(max-width: 640px) 100vw, 50vw" className="object-cover" /></div>}
+                  <div className="flex items-start justify-between gap-4 p-4 flex-1">
+                    <div><h3 className="font-bold text-brand-dark">{item.name}</h3>{item.description && <p className="text-sm text-[#3c3c6e] mt-1">{item.description}</p>}</div>
+                    <div className="font-extrabold text-brand whitespace-nowrap">{item.price} ₽</div>
                   </div>
-                  <div className="font-extrabold text-brand whitespace-nowrap">
-                    {item.price} ₽
-                  </div>
-                </div>
+                </article>
               ))}
             </div>
           </section>
