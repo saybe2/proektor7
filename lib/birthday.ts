@@ -3,7 +3,7 @@ import { BIRTHDAY_PUSH } from "./config";
 import { sendPushToUser } from "./push";
 
 /**
- * Проверка дней рождения и отправка пушей за 14/7/4 дня.
+ * Проверка дней рождения и отправка напоминаний перед периодом скидки.
  * Вызывается по крону (/api/cron/birthday) раз в день.
  */
 export async function runBirthdayPushes() {
@@ -40,7 +40,7 @@ export async function runBirthdayPushes() {
 
     const { sent } = await sendPushToUser(user.id, {
       title: "Скоро день рождения!",
-      body: `${user.name || "Привет"}! Приходи в Proектор отмечать — скидка ${BIRTHDAY_PUSH.DISCOUNT_PERCENT}% при чеке от ${BIRTHDAY_PUSH.MIN_CHECK} ₽!`,
+       body: `${user.name || "Привет"}! Скидка ${BIRTHDAY_PUSH.DISCOUNT_PERCENT}% на время действует 7 дней до и 7 дней после дня рождения. Ждём тебя в Proекторе!`,
       url: "/",
     });
 

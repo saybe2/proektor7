@@ -7,7 +7,7 @@ import { getCurrentUser } from "@/lib/auth";
 export const metadata: Metadata = {
   title: "Бонусная программа и акции",
   description:
-    "150 бонусов за регистрацию, кэшбэк 1%, 3% от покупок друга, скидка 10% на день рождения. Бонусная программа тайм-кафе Proектор.",
+    "150 бонусов за регистрацию, кэшбэк 1%, 3% от покупок друга, скидка 20% на время в честь дня рождения. Бонусная программа тайм-кафе Proектор.",
 };
 
 export default async function BonusPage() {
@@ -58,12 +58,11 @@ export default async function BonusPage() {
         <div className="card p-5 md:p-8">
           <h2 className="h-display text-lg md:text-xl text-brand mb-3 flex items-center gap-3">
             <IconCake className="w-6 h-6 shrink-0" />
-            Скидка {BIRTHDAY_PUSH.DISCOUNT_PERCENT}% на день рождения
+            Скидка {BIRTHDAY_PUSH.DISCOUNT_PERCENT}% на время в честь дня рождения
           </h2>
           <p className="text-[#3c3c6e] text-sm md:text-base">
-            Отмечай день рождения у нас — скидка {BIRTHDAY_PUSH.DISCOUNT_PERCENT}% при
-            чеке от {BIRTHDAY_PUSH.MIN_CHECK} ₽. Укажи дату рождения в профиле, и мы
-            напомним о празднике заранее.
+            Скидка действует {BIRTHDAY_PUSH.VALID_DAYS_BEFORE} дней до и {BIRTHDAY_PUSH.VALID_DAYS_AFTER} дней после дня рождения.
+            Укажи дату рождения в профиле, и мы напомним о ней заранее.
           </p>
         </div>
 

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { SITE } from "@/lib/config";
 import { IconPhone } from "@/components/icons";
 
-export default function BookingActions({ roomName }: { roomName?: string }) {
+export default function BookingActions({ roomName, label = "Забронировать" }: { roomName?: string; label?: string }) {
   const [open, setOpen] = useState(false);
   const message = encodeURIComponent(
     `Здравствуйте! Хочу уточнить свободное время${roomName ? ` для «${roomName}»` : " в тайм-кафе Proектор"}.`,
@@ -13,7 +13,7 @@ export default function BookingActions({ roomName }: { roomName?: string }) {
   return (
     <div className="relative mt-5">
       <button type="button" className="btn-brand booking-shimmer w-full" onClick={() => setOpen(!open)} aria-expanded={open}>
-        Забронировать
+        {label}
       </button>
       {open && (
         <div className="absolute left-0 right-0 bottom-full z-20 mb-2 grid gap-2 border-2 border-[#111118] bg-[#fffefa] p-3 shadow-[5px_5px_0_#111118]">

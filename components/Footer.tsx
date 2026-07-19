@@ -31,6 +31,10 @@ export default function Footer() {
             </a>
           </p>
           <div className="flex gap-3 mt-2 text-sm">
+            <a href={SITE.TELEGRAM_URL} target="_blank" rel="noopener" className="text-white/80 hover:text-white underline">Написать в Telegram</a>
+            <a href={SITE.MAX_URL} target="_blank" rel="noopener" className="text-white/80 hover:text-white underline">Написать в MAX</a>
+          </div>
+          <div className="flex gap-3 mt-2 text-sm">
             <a href={SITE.MAP_YANDEX} target="_blank" rel="noopener" className="text-white/80 hover:text-white underline">
               Яндекс Карты
             </a>

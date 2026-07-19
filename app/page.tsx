@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { BONUS, PRICES, SITE } from "@/lib/config";
 import { DEFAULT_ROOMS } from "@/lib/rooms";
 import { getCurrentUser } from "@/lib/auth";
+import BookingActions from "@/components/BookingActions";
 import {
   IconClock,
   IconDice,
@@ -54,7 +55,7 @@ export default async function HomePage() {
             url: SITE.URL,
             telephone: SITE.PHONE,
             address: { "@type": "PostalAddress", addressLocality: SITE.CITY, streetAddress: "просп. Мира, 34Б" },
-            openingHours: "Mo-Su 17:00-04:00",
+            openingHours: ["Su-Th 17:00-02:00", "Fr-Sa 17:00-04:00"],
             image: `${SITE.URL}/img/logo.jpg`,
             priceRange: "₽₽",
           }),
@@ -66,7 +67,7 @@ export default async function HomePage() {
         <div className="absolute left-[-5rem] bottom-[-8rem] h-64 w-64 rounded-full border-[45px] border-[#2020c7] opacity-90" />
         <div className="relative max-w-7xl mx-auto px-4 py-10 md:py-20 grid md:grid-cols-[1.2fr_.8fr] gap-10 items-center min-h-[670px] md:min-h-[720px]">
           <div className="z-10">
-            <div className="eyebrow text-brand mb-6">Набережные Челны · ежедневно до 04:00</div>
+            <div className="eyebrow text-brand mb-6">Набережные Челны · каждый день с 17:00</div>
             <h1 className="h-display text-[clamp(3rem,12vw,7.5rem)] text-[#111118]">
               Твоё<br />место<br /><span className="text-brand">в городе</span>
             </h1>
@@ -75,6 +76,7 @@ export default async function HomePage() {
             </p>
             <div className="mt-8 flex flex-col sm:flex-row gap-3">
               <Link href="/rooms" className="btn-brand">Посмотреть комнаты</Link>
+              <div className="sm:min-w-44 [&>div]:!mt-0"><BookingActions label="Написать" /></div>
               <a href={`tel:${SITE.PHONE.replace(/[^+\d]/g, "")}`} className="btn-outline">
                 <IconPhone className="w-5 h-5" /> {SITE.PHONE}
               </a>
@@ -89,7 +91,7 @@ export default async function HomePage() {
               <Image src="/img/logo.jpg" alt="Логотип тайм-кафе Proектор" width={700} height={700} priority className="w-full aspect-square object-cover" />
               <div className="grid grid-cols-2 gap-3 mt-4 font-black text-xs uppercase">
                 <span className="flex items-center gap-2"><IconMapPin className="w-4 h-4 text-brand" />Мира, 34Б</span>
-                <span className="flex items-center gap-2"><IconClock className="w-4 h-4 text-brand" />17:00–04:00</span>
+                <span className="flex items-center gap-2"><IconClock className="w-4 h-4 text-brand" />{SITE.HOURS_SHORT}</span>
               </div>
             </div>
           </div>

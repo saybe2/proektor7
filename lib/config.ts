@@ -14,10 +14,11 @@ export const BONUS = {
 } as const;
 
 export const BIRTHDAY_PUSH = {
-  /** За сколько дней до ДР слать пуш */
-  DAYS_BEFORE: [14, 7, 4],
-  DISCOUNT_PERCENT: 10,
-  MIN_CHECK: 5000,
+  /** За сколько дней до ДР напомнить о скидке */
+  DAYS_BEFORE: [7, 4],
+  DISCOUNT_PERCENT: 20,
+  VALID_DAYS_BEFORE: 7,
+  VALID_DAYS_AFTER: 7,
 } as const;
 
 export const PRICES = {
@@ -38,8 +39,8 @@ export const SITE = {
   PHONE: "+7 (960) 087-30-34",
   ADDRESS: "Набережные Челны, просп. Мира, 34Б (цокольный этаж)",
   CITY: "Набережные Челны",
-  HOURS: "Ежедневно с 17:00 до 04:00",
-  HOURS_SHORT: "17:00–04:00",
+  HOURS: "Вс–чт: 17:00–02:00 · пт–сб: 17:00–04:00",
+  HOURS_SHORT: "Вс–чт до 02:00 · пт–сб до 04:00",
   MAP_YANDEX: "https://yandex.ru/maps/org/proyektor/63843978209/",
   MAP_2GIS:
     "https://2gis.ru/nabchelny/inside/4082022817479740/firm/70000001029411730/",
