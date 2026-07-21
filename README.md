@@ -15,7 +15,7 @@ npm run dev               # http://localhost:3000
 
 ## Вход (режим разработки)
 
-`OTP_PROVIDER="mock"` в `.env` — код подтверждения печатается в консоль сервера.
+`OTP_PROVIDER="mock"` в `.env` — тестовый код подтверждения печатается в консоль сервера.
 
 - Владелец: телефон `+7 900 000-00-01` → `/owner`
 - Админ: телефон `+7 900 000-00-02` → `/admin`
@@ -26,7 +26,7 @@ npm run dev               # http://localhost:3000
 
 ## Что реализовано
 
-- Регистрация/вход по номеру телефона (flash call через sms.ru или mock)
+- Регистрация/вход по бесплатному звонку пользователя на специальный номер SMS.ru (или mock)
 - Бонусы: 150 за регистрацию, кэшбэк 1%, оплата бонусами до 50% чека (чек от 500 ₽)
 - Рефералка: своя ссылка/промокод, 3% от покупок друга
 - Пуш-уведомления (web-push): рассылка от владельца + автопуши на ДР за 14/7/4 дня
@@ -116,7 +116,7 @@ docker run --rm -v proektor7_proektor_db:/data -v $(pwd):/backup alpine \
 | Переменная | Что вписать |
 |---|---|
 | `AUTH_SECRET` | `openssl rand -hex 32` |
-| `OTP_PROVIDER` | `smsru` (или `mock` для теста) |
+| `OTP_PROVIDER` | `smsru` — вход по звонку пользователя (или `mock` для теста) |
 | `SMSRU_API_ID` | ключ из кабинета sms.ru |
 | `NEXT_PUBLIC_VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` | `npx web-push generate-vapid-keys` |
 | `NEXT_PUBLIC_SITE_URL` | `https://proektor7.ru` |

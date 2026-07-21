@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { normalizePhone } from "@/lib/auth";
-import { sendOtp } from "@/lib/otp";
+import { startPhoneVerification } from "@/lib/otp";
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
@@ -12,9 +12,9 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const result = await sendOtp(phone);
+  const result = await startPhoneVerification(phone);
   if (!result.ok) {
     return NextResponse.json(result, { status: 429 });
   }
-  return NextResponse.json({ ok: true, channel: result.channel });
+  return NextResponse.json(result);
 }

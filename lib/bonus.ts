@@ -1,4 +1,5 @@
 import { db } from "./db";
+import type { Prisma } from "@prisma/client";
 import { BONUS } from "./config";
 import { randomInt } from "node:crypto";
 
@@ -20,18 +21,18 @@ export async function createUserWithWelcomeBonus(params: {
   name?: string;
   birthDate?: Date;
   refCode?: string; // код пригласившего
-}) {
+}, client: Prisma.TransactionClient | typeof db = db) {
   const referrer = params.refCode
-    ? await db.user.findUnique({ where: { refCode: params.refCode } })
+    ? await client.user.findUnique({ where: { refCode: params.refCode } })
     : null;
 
   // гарантируем уникальность собственного кода
   let myCode = generateRefCode();
-  while (await db.user.findUnique({ where: { refCode: myCode } })) {
+  while (await client.user.findUnique({ where: { refCode: myCode } })) {
     myCode = generateRefCode();
   }
 
-  return db.user.create({
+  return client.user.create({
     data: {
       phone: params.phone,
       name: params.name,

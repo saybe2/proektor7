@@ -72,7 +72,7 @@ export default async function RoomsPage() {
                   <IconUsers className="w-4 h-4 text-brand" />
                   от {room.minCapacity} до {room.capacity} человек
                 </div>
-                <BookingActions roomName={room.name} />
+                <BookingActions />
               </div>
             </div>
           );

@@ -83,13 +83,13 @@ model PushSubscription {
 // Код подтверждения (flash call / telegram / sms)
 model OtpCode {
   id        String   @id @default(cuid())
-  phone     String
+  phone     String   @unique
   code      String
+  callId    String?
+  verifiedAt DateTime?
   attempts  Int      @default(0)
   expiresAt DateTime
   createdAt DateTime @default(now())
-
-  @@index([phone])
 }
 
 // Лог отправленных авто-уведомлений (чтобы не дублировать пуш на ДР)

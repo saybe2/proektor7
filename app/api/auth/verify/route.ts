@@ -2,12 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { normalizePhone, createSession } from "@/lib/auth";
-import { verifyOtp } from "@/lib/otp";
+import { checkPhoneVerification } from "@/lib/otp";
 import { createUserWithWelcomeBonus } from "@/lib/bonus";
 
 const schema = z.object({
   phone: z.string(),
-  code: z.string().min(3).max(6),
+  attemptToken: z.string().length(48),
+  mockCode: z.string().min(4).max(4).optional(),
   name: z.string().max(60).optional(),
   birthDate: z.string().optional(), // YYYY-MM-DD
   refCode: z.string().max(12).optional(),
@@ -30,30 +31,45 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const check = await verifyOtp(phone, parsed.data.code);
-  if (!check.ok) {
-    return NextResponse.json(check, { status: 400 });
+  const check = await checkPhoneVerification(phone, parsed.data.attemptToken, parsed.data.mockCode);
+  if (!check.ok || !check.verified) {
+    return NextResponse.json(
+      check.ok ? { ok: false, error: "Звонок ещё не получен" } : check,
+      { status: 400 }
+    );
   }
 
-  let user = await db.user.findUnique({ where: { phone } });
-  let isNew = false;
+  const result = await db.$transaction(async (tx) => {
+    const consumed = await tx.otpCode.deleteMany({
+      where: {
+        phone,
+        code: parsed.data.attemptToken,
+        verifiedAt: { not: null },
+        expiresAt: { gt: new Date() },
+      },
+    });
+    if (consumed.count !== 1) return null;
 
-  if (!user) {
-    // регистрация
+    const existing = await tx.user.findUnique({ where: { phone } });
+    if (existing) return { user: existing, isNew: false };
+
     let birthDate: Date | undefined;
     if (parsed.data.birthDate) {
-      const d = new Date(parsed.data.birthDate);
-      if (!isNaN(d.getTime())) birthDate = d;
+      const date = new Date(parsed.data.birthDate);
+      if (!Number.isNaN(date.getTime())) birthDate = date;
     }
-    user = await createUserWithWelcomeBonus({
+    const user = await createUserWithWelcomeBonus({
       phone,
       name: parsed.data.name?.trim() || undefined,
       birthDate,
       refCode: parsed.data.refCode?.trim().toUpperCase() || undefined,
-    });
-    isNew = true;
-  }
+    }, tx);
+    return { user, isNew: true };
+  });
 
-  await createSession(user.id, user.role);
-  return NextResponse.json({ ok: true, isNew, role: user.role });
+  if (!result) {
+    return NextResponse.json({ ok: false, error: "Проверка уже использована или истекла" }, { status: 400 });
+  }
+  await createSession(result.user.id, result.user.role);
+  return NextResponse.json({ ok: true, isNew: result.isNew, role: result.user.role });
 }
