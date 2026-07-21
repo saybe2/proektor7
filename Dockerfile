@@ -1,5 +1,12 @@
+# ==== Базовый образ ====
+FROM node:22-bookworm-slim AS base
+
+RUN apt-get update -y \
+    && apt-get install -y --no-install-recommends openssl ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
 # ==== Сборка ====
-FROM node:22-bookworm-slim AS builder
+FROM base AS builder
 WORKDIR /app
 
 COPY package.json package-lock.json ./
@@ -24,7 +31,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN npx prisma generate && npm run build
 
 # ==== Рантайм ====
-FROM node:22-bookworm-slim AS runner
+FROM base AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
