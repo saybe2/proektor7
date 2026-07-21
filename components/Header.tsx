@@ -23,11 +23,11 @@ export default function Header({ user }: Props) {
       <div className="max-w-7xl mx-auto px-4 h-[68px] flex items-center justify-between gap-4">
         <Link href="/" className="flex items-center gap-2 shrink-0">
           <Image
-            src="/img/logo.jpg"
+            src="/img/logo-wide.jpg"
             alt="Тайм-кафе Proектор"
-            width={120}
+            width={142}
             height={48}
-            className="h-11 w-auto object-contain mix-blend-multiply"
+            className="h-10 sm:h-11 w-auto object-contain mix-blend-multiply"
             priority
           />
         </Link>
