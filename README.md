@@ -1,4 +1,4 @@
-# Сайт тайм-кафе «ПРОЕКТОР» — proektor7.ru
+# Сайт тайм-кафе «ПРОЕКТОР» — проектор7.рф
 
 Next.js 16 + Prisma + SQLite. Деплой — Docker.
 
@@ -87,7 +87,7 @@ docker compose up -d --build
 
 ```nginx
 server {
-    server_name proektor7.ru www.proektor7.ru;
+    server_name xn--7-itbpoccheq.xn--p1ai www.xn--7-itbpoccheq.xn--p1ai;
     location / {
         proxy_pass http://127.0.0.1:3000;
         proxy_set_header Host $host;
@@ -99,7 +99,7 @@ server {
 ```
 
 ```bash
-sudo certbot --nginx -d proektor7.ru -d www.proektor7.ru
+sudo certbot --nginx -d xn--7-itbpoccheq.xn--p1ai -d www.xn--7-itbpoccheq.xn--p1ai
 ```
 
 ДР-пуши шлёт контейнер `cron` автоматически каждый день в 12:00.
@@ -119,7 +119,7 @@ docker run --rm -v proektor7_proektor_db:/data -v $(pwd):/backup alpine \
 | `OTP_PROVIDER` | `smsru` — вход по звонку пользователя (или `mock` для теста) |
 | `SMSRU_API_ID` | ключ из кабинета sms.ru |
 | `NEXT_PUBLIC_VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` | `npx web-push generate-vapid-keys` |
-| `NEXT_PUBLIC_SITE_URL` | `https://proektor7.ru` |
+| `NEXT_PUBLIC_SITE_URL` | `https://проектор7.рф` |
 | `CRON_SECRET` | случайная строка для защиты крона |
 
 ## Контент

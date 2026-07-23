@@ -45,7 +45,7 @@ export default function Footer() {
         </div>
       </div>
       <div className="border-t border-white/10 py-4 text-center text-white/50 text-xs">
-        {new Date().getFullYear()} Тайм-кафе «Proектор» · proektor7.ru
+        {new Date().getFullYear()} Тайм-кафе «Proектор» · проектор7.рф
       </div>
     </footer>
   );

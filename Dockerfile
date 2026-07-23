@@ -16,7 +16,7 @@ RUN npm ci --no-audit --no-fund
 COPY . .
 
 # NEXT_PUBLIC_* вшиваются в сборку — передаются как build args
-ARG NEXT_PUBLIC_SITE_URL="https://proektor7.ru"
+ARG NEXT_PUBLIC_SITE_URL="https://проектор7.рф"
 ARG NEXT_PUBLIC_VAPID_PUBLIC_KEY=""
 ARG NEXT_PUBLIC_TELEGRAM_URL=""
 ARG NEXT_PUBLIC_MAX_URL=""
