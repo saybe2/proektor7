@@ -119,7 +119,7 @@ docker run --rm -v proektor7_proektor_db:/data -v $(pwd):/backup alpine \
 | `OTP_PROVIDER` | `smsru` — вход по звонку пользователя (или `mock` для теста) |
 | `SMSRU_API_ID` | ключ из кабинета sms.ru |
 | `NEXT_PUBLIC_VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` | `npx web-push generate-vapid-keys` |
-| `NEXT_PUBLIC_SITE_URL` | `https://проектор7.рф` |
+| `NEXT_PUBLIC_SITE_URL` | `https://xn--7-itbpoccheq.xn--p1ai` (техническая запись домена `проектор7.рф`) |
 | `CRON_SECRET` | случайная строка для защиты крона |
 
 ## Контент

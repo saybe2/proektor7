@@ -3,7 +3,7 @@ import { runBirthdayPushes } from "@/lib/birthday";
 
 /**
  * Запускается раз в день кроном на сервере:
- * curl -H "Authorization: Bearer $CRON_SECRET" https://проектор7.рф/api/cron/birthday
+ * curl -H "Authorization: Bearer $CRON_SECRET" https://xn--7-itbpoccheq.xn--p1ai/api/cron/birthday
  */
 export async function GET(req: NextRequest) {
   const secret = process.env.CRON_SECRET;

@@ -9,7 +9,7 @@ function ensureConfigured(): boolean {
   const priv = process.env.VAPID_PRIVATE_KEY;
   if (!pub || !priv) return false;
   webpush.setVapidDetails(
-    process.env.VAPID_SUBJECT || "https://проектор7.рф",
+    process.env.VAPID_SUBJECT || "https://xn--7-itbpoccheq.xn--p1ai",
     pub,
     priv
   );

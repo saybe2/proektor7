@@ -33,7 +33,7 @@ export const PRICES = {
 export const SITE = {
   NAME: "Тайм-кафе Proектор",
   SHORT_NAME: "Proектор",
-  URL: process.env.NEXT_PUBLIC_SITE_URL || "https://проектор7.рф",
+  URL: process.env.NEXT_PUBLIC_SITE_URL || "https://xn--7-itbpoccheq.xn--p1ai",
   DESCRIPTION:
     "Тайм-кафе Proектор в Набережных Челнах — комнаты с проектором и приставками, караоке, настольные игры. 150 бонусов за регистрацию, кэшбэк, скидки за друзей.",
   PHONE: "+7 (960) 087-30-34",
