@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { normalizePhone, createSession } from "@/lib/auth";
 import { checkPhoneVerification } from "@/lib/otp";
 import { createUserWithWelcomeBonus } from "@/lib/bonus";
+import { PRIVACY_VERSION } from "@/lib/config";
 
 const schema = z.object({
   phone: z.string(),
@@ -12,6 +13,7 @@ const schema = z.object({
   name: z.string().max(60).optional(),
   birthDate: z.string().optional(), // YYYY-MM-DD
   refCode: z.string().max(12).optional(),
+  privacyAccepted: z.boolean().optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -39,6 +41,16 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  const consent = await db.privacyConsent.findUnique({
+    where: { phone_version: { phone, version: PRIVACY_VERSION } },
+  });
+  if (!consent || parsed.data.privacyAccepted !== true) {
+    return NextResponse.json(
+      { ok: false, error: "Необходимо принять Политику обработки персональных данных" },
+      { status: 400 }
+    );
+  }
+
   const result = await db.$transaction(async (tx) => {
     const consumed = await tx.otpCode.deleteMany({
       where: {
@@ -51,7 +63,16 @@ export async function POST(req: NextRequest) {
     if (consumed.count !== 1) return null;
 
     const existing = await tx.user.findUnique({ where: { phone } });
-    if (existing) return { user: existing, isNew: false };
+    if (existing) {
+      const user = await tx.user.update({
+        where: { id: existing.id },
+        data: {
+          privacyAcceptedAt: consent.acceptedAt,
+          privacyVersion: PRIVACY_VERSION,
+        },
+      });
+      return { user, isNew: false };
+    }
 
     let birthDate: Date | undefined;
     if (parsed.data.birthDate) {
@@ -63,6 +84,8 @@ export async function POST(req: NextRequest) {
       name: parsed.data.name?.trim() || undefined,
       birthDate,
       refCode: parsed.data.refCode?.trim().toUpperCase() || undefined,
+      privacyAcceptedAt: consent.acceptedAt,
+      privacyVersion: PRIVACY_VERSION,
     }, tx);
     return { user, isNew: true };
   });

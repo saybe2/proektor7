@@ -21,6 +21,8 @@ export async function createUserWithWelcomeBonus(params: {
   name?: string;
   birthDate?: Date;
   refCode?: string; // код пригласившего
+  privacyAcceptedAt: Date;
+  privacyVersion: string;
 }, client: Prisma.TransactionClient | typeof db = db) {
   const referrer = params.refCode
     ? await client.user.findUnique({ where: { refCode: params.refCode } })
@@ -39,6 +41,8 @@ export async function createUserWithWelcomeBonus(params: {
       birthDate: params.birthDate,
       refCode: myCode,
       referredById: referrer?.id,
+      privacyAcceptedAt: params.privacyAcceptedAt,
+      privacyVersion: params.privacyVersion,
       bonusBalance: BONUS.WELCOME,
       bonusTransactions: {
         create: {

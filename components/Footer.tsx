@@ -44,8 +44,9 @@ export default function Footer() {
           </div>
         </div>
       </div>
-      <div className="border-t border-white/10 py-4 text-center text-white/50 text-xs">
-        {new Date().getFullYear()} Тайм-кафе «Proектор» · проектор7.рф
+      <div className="border-t border-white/10 px-4 py-4 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 text-center text-white/50 text-xs">
+        <span>{new Date().getFullYear()} Тайм-кафе «Proектор» · проектор7.рф</span>
+        <Link href="/privacy" className="text-white/75 hover:text-white underline">Политика обработки персональных данных</Link>
       </div>
     </footer>
   );

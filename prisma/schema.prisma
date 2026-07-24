@@ -28,12 +28,24 @@ model User {
   referredById String?
   referrals    User[]   @relation("Referrals")
   createdAt    DateTime @default(now())
+  privacyAcceptedAt DateTime?
+  privacyVersion    String?
 
   purchases         Purchase[]        @relation("ClientPurchases")
   adminPurchases    Purchase[]        @relation("AdminPurchases")
   bonusTransactions BonusTransaction[]
   pushSubscriptions PushSubscription[]
   notifications     NotificationLog[]
+}
+
+model PrivacyConsent {
+  id         String   @id @default(cuid())
+  phone      String
+  version    String
+  acceptedAt DateTime @default(now())
+
+  @@unique([phone, version])
+  @@index([acceptedAt])
 }
 
 // Покупка (чек), которую админ проводит на кассе

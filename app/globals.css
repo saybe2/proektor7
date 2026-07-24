@@ -240,6 +240,48 @@ select:focus-visible {
 
 @keyframes ticker { to { transform: translateX(-50%); } }
 
+.legal-document section + section {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--line);
+}
+.legal-document h2 {
+  margin-bottom: 1rem;
+  color: var(--brand-dark);
+  font-family: var(--font-unbounded), sans-serif;
+  font-size: clamp(1rem, 3vw, 1.25rem);
+  font-weight: 800;
+  line-height: 1.35;
+}
+.legal-document p,
+.legal-document li {
+  color: #3c3c4a;
+  line-height: 1.75;
+}
+.legal-document p + p,
+.legal-document p + ul,
+.legal-document ul + p { margin-top: 0.8rem; }
+.legal-document ul {
+  padding-left: 1.3rem;
+  list-style: square;
+}
+.legal-document li + li { margin-top: 0.35rem; }
+.legal-document a {
+  color: var(--brand);
+  font-weight: 700;
+  text-decoration: underline;
+}
+.legal-document code {
+  padding: 0.1rem 0.3rem;
+  background: #ececff;
+  color: var(--brand-dark);
+}
+.legal-document .operator-details {
+  padding: 1.5rem;
+  background: #f2f2ff;
+  border: 2px solid var(--brand-dark);
+}
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .ticker-track { animation: none; }

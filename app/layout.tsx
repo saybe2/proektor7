@@ -25,6 +25,13 @@ export const metadata: Metadata = {
     template: `%s — ${SITE.NAME}`,
   },
   description: SITE.DESCRIPTION,
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    shortcut: "/favicon.ico",
+  },
   keywords: [
     "тайм-кафе",
     "антикафе",

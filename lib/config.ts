@@ -47,3 +47,5 @@ export const SITE = {
   TELEGRAM_URL: process.env.NEXT_PUBLIC_TELEGRAM_URL || "https://t.me/",
   MAX_URL: process.env.NEXT_PUBLIC_MAX_URL || "https://max.ru/",
 } as const;
+
+export const PRIVACY_VERSION = "2026-07-24";

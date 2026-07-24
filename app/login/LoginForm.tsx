@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 
 type Step = "phone" | "call" | "profile";
 type Channel = "callcheck" | "mock" | "";
@@ -23,6 +24,7 @@ export default function LoginForm() {
   const [mockCode, setMockCode] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [privacyAccepted, setPrivacyAccepted] = useState(false);
   const completingRef = useRef(false);
   const checkingRef = useRef(false);
 
@@ -40,6 +42,7 @@ export default function LoginForm() {
         body: JSON.stringify({
           phone,
           attemptToken,
+          privacyAccepted,
           mockCode: channel === "mock" ? mockCode : undefined,
           ...extra,
         }),
@@ -62,7 +65,7 @@ export default function LoginForm() {
     } finally {
       setLoading(false);
     }
-  }, [attemptToken, channel, mockCode, phone, router]);
+  }, [attemptToken, channel, mockCode, phone, privacyAccepted, router]);
 
   const continueAfterVerification = useCallback(async (profileRequired: boolean) => {
     if (completingRef.current) return;
@@ -118,7 +121,7 @@ export default function LoginForm() {
       const response = await fetch("/api/auth/send-code", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone }),
+        body: JSON.stringify({ phone, privacyAccepted }),
       });
       const data = await response.json();
       if (!data.ok) {
@@ -167,7 +170,18 @@ export default function LoginForm() {
           />
         </div>
         {error && <p className="text-red-600 text-sm font-semibold">{error}</p>}
-        <button className="btn-brand w-full" onClick={startCall} disabled={loading || !phone}>
+        <label className="flex items-start gap-3 text-xs text-[#3c3c6e] leading-relaxed cursor-pointer">
+          <input
+            type="checkbox"
+            className="mt-0.5 size-4 shrink-0 accent-[#2020c7]"
+            checked={privacyAccepted}
+            onChange={(event) => setPrivacyAccepted(event.target.checked)}
+          />
+          <span>
+            Я ознакомился с <Link href="/privacy" target="_blank" className="text-brand font-bold underline">Политикой обработки персональных данных</Link> и даю согласие на обработку данных для регистрации, подтверждения номера и работы бонусной программы.
+          </span>
+        </label>
+        <button className="btn-brand w-full" onClick={startCall} disabled={loading || !phone || !privacyAccepted}>
           {loading ? "Подготавливаем звонок..." : "Продолжить"}
         </button>
         <p className="text-xs text-[#3c3c6e] text-center">
