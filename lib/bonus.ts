@@ -1,6 +1,7 @@
 import { db } from "./db";
 import type { Prisma } from "@prisma/client";
 import { BONUS } from "./config";
+import { sendPushToUser } from "./push";
 import { randomInt } from "node:crypto";
 
 /** Генерация уникального реферального кода */
@@ -43,11 +44,12 @@ export async function createUserWithWelcomeBonus(params: {
       referredById: referrer?.id,
       privacyAcceptedAt: params.privacyAcceptedAt,
       privacyVersion: params.privacyVersion,
-      bonusBalance: BONUS.WELCOME,
+      bonusBalance: 0,
       bonusTransactions: {
         create: {
           amount: BONUS.WELCOME,
           type: "WELCOME",
+          status: "PENDING",
           comment: "Приветственные бонусы за регистрацию",
         },
       },
@@ -62,9 +64,8 @@ export type PurchaseResult =
 /**
  * Проведение покупки админом:
  * - проверка лимитов списания (50% чека, чек от 500₽)
- * - списание бонусов
- * - кэшбэк 1% клиенту
- * - 3% рефереру
+ * - чек и транзакции создаются в статусе PENDING
+ * - балансы меняются только после подтверждения владельцем
  */
 export async function recordPurchase(params: {
   userId: string;
@@ -99,10 +100,15 @@ export async function recordPurchase(params: {
         error: `Бонусами можно оплатить не более ${BONUS.MAX_REDEEM_PERCENT}% чека (${maxRedeem} бонусов)`,
       };
     }
-    if (bonusesToSpend > user.bonusBalance) {
+    const pendingRedeem = await db.bonusTransaction.aggregate({
+      where: { userId, type: "REDEEM", status: "PENDING" },
+      _sum: { amount: true },
+    });
+    const available = user.bonusBalance - Math.abs(pendingRedeem._sum.amount || 0);
+    if (bonusesToSpend > available) {
       return {
         ok: false,
-        error: `Недостаточно бонусов (на счету ${user.bonusBalance})`,
+        error: `Недостаточно бонусов (доступно ${available})`,
       };
     }
   }
@@ -121,6 +127,7 @@ export async function recordPurchase(params: {
         amount,
         bonusesSpent: bonusesToSpend,
         adminId,
+        status: "PENDING",
       },
     });
 
@@ -132,6 +139,7 @@ export async function recordPurchase(params: {
           amount: -bonusesToSpend,
           type: "REDEEM",
           purchaseId: purchase.id,
+          status: "PENDING",
           comment: `Оплата бонусами (чек ${amount} ₽)`,
         },
       });
@@ -145,15 +153,11 @@ export async function recordPurchase(params: {
           amount: cashback,
           type: "CASHBACK",
           purchaseId: purchase.id,
+          status: "PENDING",
           comment: `Кэшбэк ${BONUS.CASHBACK_PERCENT}% с покупки`,
         },
       });
     }
-
-    await tx.user.update({
-      where: { id: userId },
-      data: { bonusBalance: { increment: cashback - bonusesToSpend } },
-    });
 
     // 3% рефереру
     if (referralBonus > 0 && user.referredById) {
@@ -163,17 +167,191 @@ export async function recordPurchase(params: {
           amount: referralBonus,
           type: "REFERRAL",
           purchaseId: purchase.id,
+          status: "PENDING",
           comment: `${BONUS.REFERRAL_PERCENT}% от покупки друга`,
         },
-      });
-      await tx.user.update({
-        where: { id: user.referredById },
-        data: { bonusBalance: { increment: referralBonus } },
       });
     }
 
     return purchase;
   });
 
+  try {
+    const owners = await db.user.findMany({
+      where: { role: "OWNER" },
+      select: { id: true },
+    });
+    for (const owner of owners) {
+      await sendPushToUser(owner.id, {
+        title: "Новый чек на подтверждение",
+        body: `${user.name || "Клиент"}: чек ${amount} ₽${bonusesToSpend ? `, списание ${bonusesToSpend} б.` : ""}`,
+        url: "/owner",
+      });
+    }
+  } catch (err) {
+    console.error("[bonus] push to owners failed", err);
+  }
+
   return { ok: true, purchaseId: result.id, cashback, referralBonus };
+}
+
+export type DecisionResult = { ok: true } | { ok: false; error: string };
+
+/** Подтверждение чека владельцем: начисляет балансы и шлёт пуши */
+export async function confirmPurchase(purchaseId: string): Promise<DecisionResult> {
+  const purchase = await db.purchase.findUnique({
+    where: { id: purchaseId },
+    include: { bonusTransactions: true, user: { select: { id: true, referredById: true } } },
+  });
+  if (!purchase) return { ok: false, error: "Чек не найден" };
+  if (purchase.status !== "PENDING") return { ok: false, error: "Чек уже обработан" };
+
+  const now = new Date();
+  await db.$transaction(async (tx) => {
+    await tx.purchase.update({
+      where: { id: purchaseId },
+      data: { status: "CONFIRMED", confirmedAt: now },
+    });
+    for (const t of purchase.bonusTransactions) {
+      if (t.status !== "PENDING") continue;
+      await tx.bonusTransaction.update({
+        where: { id: t.id },
+        data: { status: "CONFIRMED", confirmedAt: now },
+      });
+      await tx.user.update({
+        where: { id: t.userId },
+        data: { bonusBalance: { increment: t.amount } },
+      });
+    }
+  });
+
+  const redeemed = purchase.bonusTransactions
+    .filter((t) => t.type === "REDEEM")
+    .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+  const cashback = purchase.bonusTransactions
+    .filter((t) => t.type === "CASHBACK")
+    .reduce((sum, t) => sum + t.amount, 0);
+  const referral = purchase.bonusTransactions.find((t) => t.type === "REFERRAL");
+
+  try {
+    if (redeemed > 0 && cashback > 0) {
+      await sendPushToUser(purchase.user.id, {
+        title: "Бонусы по чеку",
+        body: `+${cashback} начислено, −${redeemed} списано по чеку ${purchase.amount} ₽`,
+        url: "/cabinet",
+      });
+    } else if (redeemed > 0) {
+      await sendPushToUser(purchase.user.id, {
+        title: "Бонусы списаны",
+        body: `−${redeemed} бонусов (чек ${purchase.amount} ₽)`,
+        url: "/cabinet",
+      });
+    } else if (cashback > 0) {
+      await sendPushToUser(purchase.user.id, {
+        title: "Бонусы начислены",
+        body: `+${cashback} бонусов — кэшбэк за чек`,
+        url: "/cabinet",
+      });
+    }
+    if (referral && purchase.user.referredById) {
+      await sendPushToUser(purchase.user.referredById, {
+        title: "Бонус за друга",
+        body: `+${referral.amount} бонусов за покупку друга`,
+        url: "/cabinet",
+      });
+    }
+  } catch (err) {
+    console.error("[bonus] confirmPurchase push failed", err);
+  }
+
+  return { ok: true };
+}
+
+/** Отклонение чека владельцем: балансы не меняются */
+export async function rejectPurchase(purchaseId: string): Promise<DecisionResult> {
+  const purchase = await db.purchase.findUnique({
+    where: { id: purchaseId },
+    include: { bonusTransactions: true },
+  });
+  if (!purchase) return { ok: false, error: "Чек не найден" };
+  if (purchase.status !== "PENDING") return { ok: false, error: "Чек уже обработан" };
+
+  await db.$transaction(async (tx) => {
+    await tx.purchase.update({
+      where: { id: purchaseId },
+      data: { status: "REJECTED" },
+    });
+    await tx.bonusTransaction.updateMany({
+      where: { purchaseId, status: "PENDING" },
+      data: { status: "REJECTED" },
+    });
+  });
+
+  try {
+    await sendPushToUser(purchase.userId, {
+      title: "Чек отклонён",
+      body: "Начисление по чеку отклонено. Уточните детали у администратора.",
+      url: "/cabinet",
+    });
+  } catch (err) {
+    console.error("[bonus] rejectPurchase push failed", err);
+  }
+
+  return { ok: true };
+}
+
+/** Подтверждение приветственных бонусов */
+export async function confirmWelcome(userId: string): Promise<DecisionResult> {
+  const welcome = await db.bonusTransaction.findFirst({
+    where: { userId, type: "WELCOME", status: "PENDING" },
+  });
+  if (!welcome) return { ok: false, error: "Заявка не найдена" };
+
+  await db.$transaction(async (tx) => {
+    await tx.bonusTransaction.update({
+      where: { id: welcome.id },
+      data: { status: "CONFIRMED", confirmedAt: new Date() },
+    });
+    await tx.user.update({
+      where: { id: userId },
+      data: { bonusBalance: { increment: welcome.amount } },
+    });
+  });
+
+  try {
+    await sendPushToUser(userId, {
+      title: "Бонусы начислены",
+      body: `+${welcome.amount} бонусов за регистрацию подтверждены`,
+      url: "/cabinet",
+    });
+  } catch (err) {
+    console.error("[bonus] confirmWelcome push failed", err);
+  }
+
+  return { ok: true };
+}
+
+/** Отклонение приветственных бонусов */
+export async function rejectWelcome(userId: string): Promise<DecisionResult> {
+  const welcome = await db.bonusTransaction.findFirst({
+    where: { userId, type: "WELCOME", status: "PENDING" },
+  });
+  if (!welcome) return { ok: false, error: "Заявка не найдена" };
+
+  await db.bonusTransaction.update({
+    where: { id: welcome.id },
+    data: { status: "REJECTED" },
+  });
+
+  try {
+    await sendPushToUser(userId, {
+      title: "Бонусы отклонены",
+      body: "Приветственные бонусы не подтверждены. Уточните детали у администратора.",
+      url: "/cabinet",
+    });
+  } catch (err) {
+    console.error("[bonus] rejectWelcome push failed", err);
+  }
+
+  return { ok: true };
 }

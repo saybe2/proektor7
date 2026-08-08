@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import LogoutButton from "../cabinet/LogoutButton";
 import BroadcastForm from "./BroadcastForm";
+import PendingConfirmations from "./PendingConfirmations";
 
 export const dynamic = "force-dynamic";
 
@@ -32,17 +33,36 @@ export default async function OwnerPage() {
       _sum: { amount: true },
     }),
     db.bonusTransaction.aggregate({
-      where: { amount: { gt: 0 } },
+      where: { amount: { gt: 0 }, status: "CONFIRMED" },
       _sum: { amount: true },
     }),
     db.bonusTransaction.aggregate({
-      where: { type: "REDEEM" },
+      where: { type: "REDEEM", status: "CONFIRMED" },
       _sum: { amount: true },
     }),
     db.pushSubscription.count(),
   ]);
 
+  const unreadFeedback = await db.feedback.count({ where: { isRead: false } });
+
+  const [pendingPurchases, pendingWelcomes] = await Promise.all([
+    db.purchase.findMany({
+      where: { status: "PENDING" },
+      include: {
+        user: { select: { name: true, phone: true } },
+        bonusTransactions: true,
+      },
+      orderBy: { createdAt: "asc" },
+    }),
+    db.bonusTransaction.findMany({
+      where: { type: "WELCOME", status: "PENDING" },
+      include: { user: { select: { id: true, name: true, phone: true, createdAt: true } } },
+      orderBy: { createdAt: "asc" },
+    }),
+  ]);
+
   const stats = [
+    { label: "Ожидают подтверждения", value: pendingPurchases.length + pendingWelcomes.length },
     { label: "Клиентов всего", value: clientsTotal },
     { label: "Новых за 30 дней", value: clientsMonth },
     { label: "Чеков за 30 дней", value: purchasesMonth },
@@ -72,10 +92,46 @@ export default async function OwnerPage() {
         ))}
       </div>
 
+      {/* Заявки на подтверждение */}
+      {(pendingPurchases.length > 0 || pendingWelcomes.length > 0) && (
+        <PendingConfirmations
+          pendingPurchases={pendingPurchases.map((p) => ({
+            id: p.id,
+            amount: p.amount,
+            bonusesSpent: p.bonusesSpent,
+            createdAt: p.createdAt.toISOString(),
+            clientName: p.user.name || "Клиент",
+            clientPhone: p.user.phone,
+            cashback: p.bonusTransactions
+              .filter((t) => t.type === "CASHBACK")
+              .reduce((sum, t) => sum + t.amount, 0),
+            referralBonus: p.bonusTransactions
+              .filter((t) => t.type === "REFERRAL")
+              .reduce((sum, t) => sum + t.amount, 0),
+          }))}
+          pendingWelcomes={pendingWelcomes.map((w) => ({
+            userId: w.user.id,
+            name: w.user.name || "Клиент",
+            phone: w.user.phone,
+            createdAt: w.user.createdAt.toISOString(),
+          }))}
+        />
+      )}
+
       {/* Касса тоже доступна владельцу */}
       <div className="grid md:grid-cols-2 gap-6 mb-6">
         <div className="card p-6 flex items-center justify-between gap-4"><div><div className="font-extrabold text-brand-dark">База клиентов</div><p className="text-sm text-[#3c3c6e]">Телефоны, чеки, бонусы и приглашённые друзья</p></div><Link href="/owner/clients" className="btn-brand !py-2 !px-4 text-sm shrink-0">Открыть</Link></div>
         <div className="card p-6 flex items-center justify-between gap-4"><div><div className="font-extrabold text-brand-dark">Подробная выручка</div><p className="text-sm text-[#3c3c6e]">Чеки по периодам, клиентам и администраторам</p></div><Link href="/owner/revenue" className="btn-brand !py-2 !px-4 text-sm shrink-0">Открыть</Link></div>
+      </div>
+
+      <div className="card p-6 mb-6 flex items-center justify-between gap-4">
+        <div>
+          <div className="font-extrabold text-brand-dark">Сообщения директору</div>
+          <p className="text-sm text-[#3c3c6e]">Жалобы и предложения со страницы обратной связи{unreadFeedback > 0 ? ` · непрочитанных: ${unreadFeedback}` : ""}</p>
+        </div>
+        <Link href="/owner/feedback" className="btn-brand !py-2 !px-5 text-sm shrink-0">
+          Открыть
+        </Link>
       </div>
 
       <div className="card p-6 mb-6 flex items-center justify-between gap-4">

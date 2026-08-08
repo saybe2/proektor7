@@ -1,17 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import { SITE } from "@/lib/config";
 
 export default function RefLinkCard({
-  refLink,
   refCode,
   referralsCount,
 }: {
-  refLink: string;
+  refLink?: string;
   refCode: string;
   referralsCount: number;
 }) {
   const [copied, setCopied] = useState(false);
+  const displayLink = `${SITE.DISPLAY_URL}/login?ref=${refCode}`;
 
   async function share() {
     if (navigator.share) {
@@ -19,7 +20,7 @@ export default function RefLinkCard({
         await navigator.share({
           title: "Встретимся в Proекторе",
           text: `Регистрируйся по моей ссылке в тайм-кафе Proектор. Мой код: ${refCode}`,
-          url: refLink,
+          url: displayLink,
         });
         return;
       } catch (error) {
@@ -27,12 +28,12 @@ export default function RefLinkCard({
       }
     }
     try {
-      await navigator.clipboard.writeText(refLink);
+      await navigator.clipboard.writeText(displayLink);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
       // fallback
-      prompt("Скопируйте ссылку:", refLink);
+      prompt("Скопируйте ссылку:", displayLink);
     }
   }
 
@@ -45,7 +46,7 @@ export default function RefLinkCard({
         Друзей приглашено: <b>{referralsCount}</b> · Твой промокод: <b>{refCode}</b>
       </p>
       <div className="flex gap-2">
-        <input className="input text-sm" readOnly value={refLink} onFocus={(e) => e.target.select()} />
+        <input className="input text-sm" readOnly value={displayLink} onFocus={(e) => e.target.select()} />
         <button className="btn-brand !px-4 shrink-0" onClick={share}>
           {copied ? "Ссылка скопирована" : "Поделиться"}
         </button>

@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
+import PushOneForm from "./PushOneForm";
 
 export const dynamic = "force-dynamic";
 
@@ -55,15 +56,17 @@ export default async function OwnerClientsPage({ searchParams }: { searchParams:
             </div>
           </div>
           <div className="mt-6 text-sm"><b>Приглашено друзей:</b> {selected.referrals.length}{selected.referredBy && <> · <b>Пригласил:</b> {selected.referredBy.name || `+${selected.referredBy.phone}`}</>}</div>
+          <div className="mt-2 text-sm"><b>День рождения:</b> {selected.birthDate ? new Date(selected.birthDate).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" }) : "не указан"}</div>
+          <PushOneForm userId={selected.id} />
         </section>
       )}
 
       <div className="card overflow-x-auto">
-        <table className="w-full min-w-[720px] text-sm">
-          <thead className="bg-[#111118] text-white text-left"><tr><th className="p-3">Клиент</th><th className="p-3">Телефон</th><th className="p-3">Чеков</th><th className="p-3">Выручка</th><th className="p-3">Бонусы</th><th className="p-3">Друзья</th></tr></thead>
+        <table className="w-full min-w-[820px] text-sm">
+          <thead className="bg-[#111118] text-white text-left"><tr><th className="p-3">Клиент</th><th className="p-3">Телефон</th><th className="p-3">ДР</th><th className="p-3">Чеков</th><th className="p-3">Выручка</th><th className="p-3">Бонусы</th><th className="p-3">Друзья</th></tr></thead>
           <tbody>{clients.map((client) => {
             const revenue = client.purchases.reduce((sum, purchase) => sum + purchase.amount, 0);
-            return <tr key={client.id} className="border-b border-[#d8d4ca] hover:bg-brand-bg"><td className="p-3"><Link href={`/owner/clients?client=${client.id}`} className="font-black text-brand">{client.name || "Без имени"}</Link></td><td className="p-3">+{client.phone}</td><td className="p-3">{client.purchases.length}</td><td className="p-3 font-bold">{revenue} ₽</td><td className="p-3">{client.bonusBalance}</td><td className="p-3">{client.referrals.length}</td></tr>;
+            return <tr key={client.id} className="border-b border-[#d8d4ca] hover:bg-brand-bg"><td className="p-3"><Link href={`/owner/clients?client=${client.id}`} className="font-black text-brand">{client.name || "Без имени"}</Link></td><td className="p-3">+{client.phone}</td><td className="p-3">{client.birthDate ? new Date(client.birthDate).toLocaleDateString("ru-RU", { day: "numeric", month: "long" }) : "—"}</td><td className="p-3">{client.purchases.length}</td><td className="p-3 font-bold">{revenue} ₽</td><td className="p-3">{client.bonusBalance}</td><td className="p-3">{client.referrals.length}</td></tr>;
           })}</tbody>
         </table>
       </div>

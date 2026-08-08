@@ -3,8 +3,8 @@ import { SITE } from "@/lib/config";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: SITE.NAME,
-    short_name: SITE.SHORT_NAME,
+    name: SITE.PWA_NAME,
+    short_name: SITE.PWA_NAME,
     description: SITE.DESCRIPTION,
     start_url: "/",
     display: "standalone",

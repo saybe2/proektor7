@@ -20,11 +20,15 @@ export default async function CabinetPage() {
   if (!user) redirect("/login");
   if (user.role !== "CLIENT") redirect(user.role === "OWNER" ? "/owner" : "/admin");
 
-  const [transactions, referralsCount] = await Promise.all([
+  const [transactions, pendingTransactions, referralsCount] = await Promise.all([
     db.bonusTransaction.findMany({
-      where: { userId: user.id },
+      where: { userId: user.id, status: { not: "PENDING" } },
       orderBy: { createdAt: "desc" },
       take: 30,
+    }),
+    db.bonusTransaction.findMany({
+      where: { userId: user.id, status: "PENDING" },
+      orderBy: { createdAt: "desc" },
     }),
     db.user.count({ where: { referredById: user.id } }),
   ]);
@@ -48,6 +52,38 @@ export default async function CabinetPage() {
           1 бонус = 1 ₽ · оплата до {BONUS.MAX_REDEEM_PERCENT}% чека (от {BONUS.MIN_CHECK_FOR_REDEEM} ₽)
         </div>
       </div>
+
+      {/* Ожидающие подтверждения */}
+      {pendingTransactions.length > 0 && (
+        <div className="card p-6 mb-6">
+          <h2 className="font-extrabold text-lg text-brand-dark mb-4">
+            Ожидают подтверждения владельцем
+          </h2>
+          <div className="divide-y divide-[#eef0fa]">
+            {pendingTransactions.map((t) => (
+              <div key={t.id} className="py-3 flex items-center justify-between gap-3">
+                <div>
+                  <div className="font-semibold text-sm text-brand-dark">
+                    {TYPE_LABELS[t.type] || t.type}
+                  </div>
+                  {t.comment && <div className="text-xs text-[#3c3c6e]">{t.comment}</div>}
+                  <div className="text-xs text-[#9aa0c0]">
+                    {new Date(t.createdAt).toLocaleDateString("ru-RU", {
+                      day: "numeric", month: "long", year: "numeric",
+                    })}
+                  </div>
+                </div>
+                <div className="font-extrabold text-[#9aa0c0]">
+                  {t.amount > 0 ? "+" : "−"}{Math.abs(t.amount)}
+                </div>
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-[#9aa0c0] mt-4">
+            Бонусы появятся на балансе после подтверждения — придёт уведомление.
+          </p>
+        </div>
+      )}
 
       {/* Реферальная ссылка */}
       <RefLinkCard refLink={refLink} refCode={user.refCode} referralsCount={referralsCount} />

@@ -30,12 +30,39 @@ model User {
   createdAt    DateTime @default(now())
   privacyAcceptedAt DateTime?
   privacyVersion    String?
+  marketingAcceptedAt DateTime?
+  marketingVersion    String?
 
   purchases         Purchase[]        @relation("ClientPurchases")
   adminPurchases    Purchase[]        @relation("AdminPurchases")
   bonusTransactions BonusTransaction[]
   pushSubscriptions PushSubscription[]
   notifications     NotificationLog[]
+  feedbacks         Feedback[]
+}
+
+// Согласие на получение рекламных уведомлений (отдельно от политики ПДн)
+model MarketingConsent {
+  id         String   @id @default(cuid())
+  phone      String
+  version    String
+  acceptedAt DateTime @default(now())
+
+  @@unique([phone, version])
+  @@index([acceptedAt])
+}
+
+model Feedback {
+  id        String   @id @default(cuid())
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userId    String?
+  name      String?
+  phone     String?
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
 }
 
 model PrivacyConsent {
@@ -48,6 +75,12 @@ model PrivacyConsent {
   @@index([acceptedAt])
 }
 
+enum ConfirmationStatus {
+  PENDING
+  CONFIRMED
+  REJECTED
+}
+
 // Покупка (чек), которую админ проводит на кассе
 model Purchase {
   id          String   @id @default(cuid())
@@ -57,6 +90,8 @@ model Purchase {
   bonusesSpent Int     @default(0) // сколько оплачено бонусами (макс 50%)
   admin       User?    @relation("AdminPurchases", fields: [adminId], references: [id])
   adminId     String?
+  status      ConfirmationStatus @default(CONFIRMED)
+  confirmedAt DateTime?
   createdAt   DateTime @default(now())
 
   bonusTransactions BonusTransaction[]
@@ -79,7 +114,11 @@ model BonusTransaction {
   purchase   Purchase? @relation(fields: [purchaseId], references: [id])
   purchaseId String?
   comment    String?
+  status      ConfirmationStatus @default(CONFIRMED)
+  confirmedAt DateTime?
   createdAt  DateTime  @default(now())
+
+  @@index([status])
 }
 
 model PushSubscription {

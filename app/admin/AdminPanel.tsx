@@ -49,8 +49,8 @@ export default function AdminPanel({ isOwner }: { isOwner: boolean }) {
       }
       setMessage({
         ok: true,
-        text: `Чек проведён! Кэшбэк клиенту: +${data.cashback} бонусов${
-          data.referralBonus ? `, рефереру: +${data.referralBonus}` : ""
+        text: `Чек отправлен на подтверждение владельцу. После подтверждения клиент получит +${data.cashback} бонусов${
+          data.referralBonus ? `, рефереру +${data.referralBonus}` : ""
         }`,
       });
       setAmount("");
@@ -112,6 +112,9 @@ export default function AdminPanel({ isOwner }: { isOwner: boolean }) {
           </h2>
           <p className="text-sm text-[#3c3c6e] mb-4">
             На счету: <b>{selected.bonusBalance} бонусов</b>
+          </p>
+          <p className="text-xs text-[#3c3c6e] mb-4">
+            Бонусы применяются после подтверждения владельцем.
           </p>
 
           <div className="grid gap-4 sm:grid-cols-2">

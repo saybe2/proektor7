@@ -34,6 +34,10 @@ export const SITE = {
   NAME: "Тайм-кафе Proектор",
   SHORT_NAME: "Proектор",
   URL: process.env.NEXT_PUBLIC_SITE_URL || "https://xn--7-itbpoccheq.xn--p1ai",
+  /** Красивый домен для отображения пользователю (ссылки, шеринг) */
+  DISPLAY_URL: "https://проектор7.рф",
+  /** Название приложения при установке на главный экран */
+  PWA_NAME: "ПРОЕКТОР 7",
   DESCRIPTION:
     "Тайм-кафе Proектор в Набережных Челнах — комнаты с проектором и приставками, караоке, настольные игры. 150 бонусов за регистрацию, кэшбэк, скидки за друзей.",
   PHONE: "+7 (960) 087-30-34",
@@ -49,3 +53,6 @@ export const SITE = {
 } as const;
 
 export const PRIVACY_VERSION = "2026-07-24";
+
+/** Версия согласия на рекламные уведомления */
+export const MARKETING_VERSION = "2026-08-08";

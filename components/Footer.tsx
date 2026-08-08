@@ -19,6 +19,7 @@ export default function Footer() {
             <li><Link href="/karaoke" className="hover:text-white">Караоке</Link></li>
             <li><Link href="/games" className="hover:text-white">Настольные игры</Link></li>
             <li><Link href="/bonus" className="hover:text-white">Бонусная программа</Link></li>
+            <li><Link href="/feedback" className="hover:text-white">Написать директору</Link></li>
           </ul>
         </div>
         <div>

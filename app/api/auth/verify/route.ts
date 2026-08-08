@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import { normalizePhone, createSession } from "@/lib/auth";
 import { checkPhoneVerification } from "@/lib/otp";
 import { createUserWithWelcomeBonus } from "@/lib/bonus";
-import { PRIVACY_VERSION } from "@/lib/config";
+import { PRIVACY_VERSION, MARKETING_VERSION } from "@/lib/config";
 
 const schema = z.object({
   phone: z.string(),
@@ -14,6 +14,7 @@ const schema = z.object({
   birthDate: z.string().optional(), // YYYY-MM-DD
   refCode: z.string().max(12).optional(),
   privacyAccepted: z.boolean().optional(),
+  marketingAccepted: z.boolean().optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -52,6 +53,15 @@ export async function POST(req: NextRequest) {
   }
 
   const result = await db.$transaction(async (tx) => {
+    const existing = await tx.user.findUnique({ where: { phone } });
+
+    let birthDate: Date | undefined;
+    if (!existing) {
+      const date = parsed.data.birthDate ? new Date(parsed.data.birthDate) : undefined;
+      if (!date || Number.isNaN(date.getTime())) return { birthDateError: true as const };
+      birthDate = date;
+    }
+
     const consumed = await tx.otpCode.deleteMany({
       where: {
         phone,
@@ -62,7 +72,6 @@ export async function POST(req: NextRequest) {
     });
     if (consumed.count !== 1) return null;
 
-    const existing = await tx.user.findUnique({ where: { phone } });
     if (existing) {
       const user = await tx.user.update({
         where: { id: existing.id },
@@ -74,11 +83,6 @@ export async function POST(req: NextRequest) {
       return { user, isNew: false };
     }
 
-    let birthDate: Date | undefined;
-    if (parsed.data.birthDate) {
-      const date = new Date(parsed.data.birthDate);
-      if (!Number.isNaN(date.getTime())) birthDate = date;
-    }
     const user = await createUserWithWelcomeBonus({
       phone,
       name: parsed.data.name?.trim() || undefined,
@@ -87,9 +91,23 @@ export async function POST(req: NextRequest) {
       privacyAcceptedAt: consent.acceptedAt,
       privacyVersion: PRIVACY_VERSION,
     }, tx);
+    if (parsed.data.marketingAccepted === true) {
+      await tx.marketingConsent.upsert({
+        where: { phone_version: { phone, version: MARKETING_VERSION } },
+        create: { phone, version: MARKETING_VERSION },
+        update: {},
+      });
+      await tx.user.update({
+        where: { id: user.id },
+        data: { marketingAcceptedAt: new Date(), marketingVersion: MARKETING_VERSION },
+      });
+    }
     return { user, isNew: true };
   });
 
+  if (result && "birthDateError" in result) {
+    return NextResponse.json({ ok: false, error: "Укажите дату рождения" }, { status: 400 });
+  }
   if (!result) {
     return NextResponse.json({ ok: false, error: "Проверка уже использована или истекла" }, { status: 400 });
   }

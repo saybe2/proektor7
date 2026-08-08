@@ -25,6 +25,7 @@ export default function LoginForm() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [privacyAccepted, setPrivacyAccepted] = useState(false);
+  const [marketingAccepted, setMarketingAccepted] = useState(true);
   const completingRef = useRef(false);
   const checkingRef = useRef(false);
 
@@ -32,6 +33,7 @@ export default function LoginForm() {
     name?: string;
     birthDate?: string;
     refCode?: string;
+    marketingAccepted?: boolean;
   }) => {
     setError("");
     setLoading(true);
@@ -259,7 +261,7 @@ export default function LoginForm() {
         />
       </div>
       <div>
-        <label className="label" htmlFor="register-birthday">Дата рождения (для праздничной скидки)</label>
+        <label className="label" htmlFor="register-birthday">Дата рождения (обязательно — для праздничной скидки)</label>
         <input id="register-birthday" className="input" type="date" value={birthDate} onChange={(event) => setBirthDate(event.target.value)} />
       </div>
       <div>
@@ -273,11 +275,22 @@ export default function LoginForm() {
           maxLength={8}
         />
       </div>
+      <label className="flex items-start gap-3 text-xs text-[#3c3c6e] leading-relaxed cursor-pointer">
+        <input
+          type="checkbox"
+          className="mt-0.5 size-4 shrink-0 accent-[#2020c7]"
+          checked={marketingAccepted}
+          onChange={(event) => setMarketingAccepted(event.target.checked)}
+        />
+        <span>
+          Хочу получать уведомления об акциях, а также о начислении и списании бонусов. Бонусы начисляются после подтверждения владельцем — с включёнными уведомлениями вы сразу узнаете о зачислении.
+        </span>
+      </label>
       {error && <p className="text-red-600 text-sm font-semibold">{error}</p>}
       <button
         className="btn-brand w-full"
-        disabled={loading}
-        onClick={() => void finishLogin({ name, birthDate, refCode: refCode || undefined })}
+        disabled={loading || !birthDate}
+        onClick={() => void finishLogin({ name, birthDate, refCode: refCode || undefined, marketingAccepted })}
       >
         {loading ? "Создаём аккаунт..." : "Зарегистрироваться (+150 бонусов)"}
       </button>

@@ -25,6 +25,11 @@ export const metadata: Metadata = {
     template: `%s — ${SITE.NAME}`,
   },
   description: SITE.DESCRIPTION,
+  appleWebApp: {
+    capable: true,
+    title: SITE.PWA_NAME,
+    statusBarStyle: "default",
+  },
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },

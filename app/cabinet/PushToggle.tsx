@@ -13,6 +13,9 @@ function urlBase64ToUint8Array(base64String: string) {
 
 export default function PushToggle({ alwaysVisible = false }: { alwaysVisible?: boolean }) {
   const [supported] = useState(() => typeof window !== "undefined" && "serviceWorker" in navigator && "PushManager" in window);
+  const [isIOS] = useState(() => typeof window !== "undefined" && /iPad|iPhone|iPod/.test(navigator.userAgent));
+  const [standalone] = useState(() => typeof window !== "undefined" && (window.matchMedia("(display-mode: standalone)").matches || Boolean((navigator as { standalone?: boolean }).standalone)));
+  const iosNeedsInstall = isIOS && !standalone;
   const [subscribed, setSubscribed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -70,7 +73,21 @@ export default function PushToggle({ alwaysVisible = false }: { alwaysVisible?: 
     }
   }
 
-  if (!supported && !alwaysVisible) return null;
+  if (!supported && !alwaysVisible && !iosNeedsInstall) return null;
+
+  if (iosNeedsInstall) {
+    return (
+      <div className="card p-5 md:p-7">
+        <div className="font-extrabold text-brand-dark">Как включить уведомления на iPhone</div>
+        <ol className="list-decimal list-inside space-y-2 mt-3 text-sm text-[#3c3c6e]">
+          <li>Нажмите кнопку «Поделиться» в Safari (квадрат со стрелкой внизу).</li>
+          <li>Выберите «На экран &laquo;Домой&raquo;» → «Добавить».</li>
+          <li>Откройте ПРОЕКТОР 7 с иконки на экране.</li>
+          <li>Вернитесь сюда и нажмите «Включить».</li>
+        </ol>
+      </div>
+    );
+  }
 
   return (
     <div className="card p-5 md:p-7 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
