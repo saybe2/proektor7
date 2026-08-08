@@ -285,4 +285,75 @@ select:focus-visible {
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .ticker-track { animation: none; }
+  .splash-word span,
+  .splash-ring,
+  .splash-tagline { animation-duration: 0.01s !important; animation-delay: 0s !important; }
 }
+
+/* ==== Заставка при первом заходе (вариант «Фокус») ==== */
+.splash-seen #site-splash { display: none; }
+
+.splash {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0c0c14;
+  cursor: pointer;
+  transition: opacity 0.45s ease;
+}
+.splash--fade {
+  opacity: 0;
+  pointer-events: none;
+}
+.splash-ring {
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  border: 2px solid rgba(140, 148, 255, 0.5);
+  border-radius: 50%;
+  opacity: 0;
+  animation: splash-ring 1.6s ease-out 0.2s;
+}
+@keyframes splash-ring {
+  0% { transform: scale(0.4); opacity: 0.9; }
+  100% { transform: scale(3.2); opacity: 0; }
+}
+.splash-word {
+  display: flex;
+  gap: 0.02em;
+  font-family: var(--font-unbounded), sans-serif;
+  font-size: clamp(30px, 7.5vw, 76px);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: #fff;
+}
+.splash-word span {
+  display: inline-block;
+  opacity: 0;
+  filter: blur(18px);
+  transform: scale(1.35);
+  animation: splash-letter 0.7s cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
+}
+.splash-word span.splash-accent { color: #6f72ff; }
+@keyframes splash-letter {
+  60% { opacity: 1; filter: blur(0); transform: scale(0.97); }
+  100% { opacity: 1; filter: blur(0); transform: scale(1); }
+}
+.splash-tagline {
+  position: absolute;
+  top: calc(50% + clamp(44px, 7vw, 80px));
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-family: var(--font-unbounded), sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.45em;
+  color: #565a7a;
+  opacity: 0;
+  animation: splash-tagline 0.8s ease-out 2s forwards;
+}
+@keyframes splash-tagline { to { opacity: 1; } }

@@ -6,6 +6,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { getCurrentUser } from "@/lib/auth";
 import MobileDock from "@/components/MobileDock";
+import SplashScreen from "@/components/SplashScreen";
 
 const manrope = Manrope({
   variable: "--font-manrope",
@@ -69,6 +70,12 @@ export default async function RootLayout({
   return (
     <html lang="ru" className={`${manrope.variable} ${unbounded.variable} h-full antialiased`}>
       <body className="min-h-screen flex flex-col">
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{if(sessionStorage.getItem("p7splash"))document.documentElement.classList.add("splash-seen")}catch(e){}`,
+          }}
+        />
+        <SplashScreen />
         <Header
           user={user ? { name: user.name, role: user.role, bonusBalance: user.bonusBalance } : null}
         />
