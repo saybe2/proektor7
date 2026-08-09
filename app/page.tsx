@@ -88,7 +88,7 @@ export default async function HomePage() {
               Рейтинг 5,0 на Яндекс Картах
             </div>
             <div className="border-2 border-[#111118] bg-white p-4 shadow-[12px_12px_0_#111118] rotate-[2deg]">
-              <Image src="/img/logo.jpg" alt="Логотип тайм-кафе Proектор" width={700} height={700} priority className="w-full aspect-square object-cover" />
+              <Image src="/img/logo.webp" alt="Логотип тайм-кафе Proектор" width={700} height={700} priority className="w-full aspect-square object-cover" />
               <div className="grid grid-cols-2 gap-3 mt-4 font-black text-xs uppercase">
                 <span className="flex items-center gap-2"><IconMapPin className="w-4 h-4 text-brand" />Мира, 34Б</span>
                 <span className="flex items-center gap-2"><IconClock className="w-4 h-4 text-brand" />{SITE.HOURS_SHORT}</span>

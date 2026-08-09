@@ -3,7 +3,7 @@
 import { useEffect, useState, type CSSProperties } from "react";
 
 const STORAGE_KEY = "p7splash";
-const PLAY_MS = 5000;
+const PLAY_MS = 6800;
 const FADE_MS = 450;
 
 const LETTERS = "ПРОЕКТОР".split("");
@@ -71,12 +71,8 @@ export default function SplashScreen() {
             </svg>
           </div>
           <div className="splash-nic splash-nic--pad">
-            <svg viewBox="0 0 64 64" stroke="currentColor">
-              <path d="M20 22 h24 c7 0 12 5 12 12 v5 c0 5 -4 9 -8.5 9 c-3 0 -5 -1.5 -7 -4 l-2.5 -3 h-12 l-2.5 3 c-2 2.5 -4 4 -7 4 c-4.5 0 -8.5 -4 -8.5 -9 v-5 c0 -7 5 -12 12 -12 z" />
-              <path d="M21 30 v10 M16 35 h10" />
-              <circle cx="44" cy="32" r="2.4" fill="currentColor" stroke="none" />
-              <circle cx="50" cy="37" r="2.4" fill="currentColor" stroke="none" />
-            </svg>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/img/gamepad.svg" alt="" />
           </div>
         </div>
         <div className="splash-word">

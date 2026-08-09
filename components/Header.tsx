@@ -23,7 +23,7 @@ export default function Header({ user }: Props) {
       <div className="max-w-7xl mx-auto px-4 h-[68px] flex items-center justify-between gap-4">
         <Link href="/" className="flex items-center gap-2 shrink-0">
           <Image
-            src="/img/logo-wide.jpg"
+            src="/img/logo-wide.webp"
             alt="Тайм-кафе Proектор"
             width={142}
             height={48}
