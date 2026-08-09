@@ -2,6 +2,16 @@
   "name": "proektor7.ru",
   "version": "0.1.0",
   "private": true,
+  "browserslist": {
+    "production": [
+      "chrome >= 100",
+      "edge >= 100",
+      "firefox >= 100",
+      "safari >= 16",
+      "ios_saf >= 16",
+      "not dead"
+    ]
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
