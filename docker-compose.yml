@@ -28,7 +28,7 @@ services:
       timeout: 5s
       retries: 3
 
-  # Ежедневный крон: пуши о дне рождения за 14/7/4 дня (12:00)
+  # Крон: ежедневно пуши о дне рождения (12:00), ежечасно автоподтверждение бонусов (18 ч)
   cron:
     image: alpine:3.20
     restart: unless-stopped
@@ -40,7 +40,8 @@ services:
     environment:
       TZ: "Europe/Moscow"
     command: >
-      sh -c 'echo "0 12 * * * wget -qO- --header=\"Authorization: Bearer $$CRON_SECRET\" http://web:3000/api/cron/birthday" | crontab - && crond -f -l 2'
+      sh -c '(echo "0 12 * * * wget -qO- --header=\"Authorization: Bearer $$CRON_SECRET\" http://web:3000/api/cron/birthday";
+      echo "7 * * * * wget -qO- --header=\"Authorization: Bearer $$CRON_SECRET\" http://web:3000/api/cron/auto-confirm") | crontab - && crond -f -l 2'
 
 volumes:
   proektor_db:

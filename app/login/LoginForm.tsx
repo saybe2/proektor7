@@ -26,6 +26,7 @@ export default function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [privacyAccepted, setPrivacyAccepted] = useState(false);
   const [marketingAccepted, setMarketingAccepted] = useState(true);
+  const [serviceNotifyAccepted, setServiceNotifyAccepted] = useState(true);
   const completingRef = useRef(false);
   const checkingRef = useRef(false);
 
@@ -34,6 +35,7 @@ export default function LoginForm() {
     birthDate?: string;
     refCode?: string;
     marketingAccepted?: boolean;
+    serviceNotifyAccepted?: boolean;
   }) => {
     setError("");
     setLoading(true);
@@ -279,18 +281,29 @@ export default function LoginForm() {
         <input
           type="checkbox"
           className="mt-0.5 size-4 shrink-0 accent-[#2020c7]"
+          checked={serviceNotifyAccepted}
+          onChange={(event) => setServiceNotifyAccepted(event.target.checked)}
+        />
+        <span>
+          <b className="text-brand-dark">Обязательно.</b> Согласен получать сервисные уведомления о начислении и списании бонусов — это условие участия в бонусной программе. Бонусы зачисляются после подтверждения владельцем или автоматически через 18 часов — уведомление сообщит о зачислении.
+        </span>
+      </label>
+      <label className="flex items-start gap-3 text-xs text-[#3c3c6e] leading-relaxed cursor-pointer">
+        <input
+          type="checkbox"
+          className="mt-0.5 size-4 shrink-0 accent-[#2020c7]"
           checked={marketingAccepted}
           onChange={(event) => setMarketingAccepted(event.target.checked)}
         />
         <span>
-          Хочу получать уведомления об акциях, а также о начислении и списании бонусов. Бонусы начисляются после подтверждения владельцем — с включёнными уведомлениями вы сразу узнаете о зачислении.
+          По желанию. Хочу получать рекламные уведомления об акциях и скидках. Можно отключить в любой момент в настройках кабинета.
         </span>
       </label>
       {error && <p className="text-red-600 text-sm font-semibold">{error}</p>}
       <button
         className="btn-brand w-full"
-        disabled={loading || !birthDate}
-        onClick={() => void finishLogin({ name, birthDate, refCode: refCode || undefined, marketingAccepted })}
+        disabled={loading || !birthDate || !serviceNotifyAccepted}
+        onClick={() => void finishLogin({ name, birthDate, refCode: refCode || undefined, marketingAccepted, serviceNotifyAccepted })}
       >
         {loading ? "Создаём аккаунт..." : "Зарегистрироваться (+150 бонусов)"}
       </button>

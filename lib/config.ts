@@ -56,3 +56,9 @@ export const PRIVACY_VERSION = "2026-07-24";
 
 /** Версия согласия на рекламные уведомления */
 export const MARKETING_VERSION = "2026-08-08";
+
+/** Версия согласия на сервисные уведомления о бонусах (обязательное) */
+export const SERVICE_NOTIFY_VERSION = "2026-08-08";
+
+/** Через сколько часов бонусы подтверждаются автоматически */
+export const AUTO_CONFIRM_HOURS = 18;

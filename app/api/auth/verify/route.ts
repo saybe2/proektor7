@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import { normalizePhone, createSession } from "@/lib/auth";
 import { checkPhoneVerification } from "@/lib/otp";
 import { createUserWithWelcomeBonus } from "@/lib/bonus";
-import { PRIVACY_VERSION, MARKETING_VERSION } from "@/lib/config";
+import { PRIVACY_VERSION, MARKETING_VERSION, SERVICE_NOTIFY_VERSION } from "@/lib/config";
 
 const schema = z.object({
   phone: z.string(),
@@ -15,6 +15,7 @@ const schema = z.object({
   refCode: z.string().max(12).optional(),
   privacyAccepted: z.boolean().optional(),
   marketingAccepted: z.boolean().optional(),
+  serviceNotifyAccepted: z.boolean().optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -60,6 +61,7 @@ export async function POST(req: NextRequest) {
       const date = parsed.data.birthDate ? new Date(parsed.data.birthDate) : undefined;
       if (!date || Number.isNaN(date.getTime())) return { birthDateError: true as const };
       birthDate = date;
+      if (parsed.data.serviceNotifyAccepted !== true) return { serviceNotifyError: true as const };
     }
 
     const consumed = await tx.otpCode.deleteMany({
@@ -102,11 +104,26 @@ export async function POST(req: NextRequest) {
         data: { marketingAcceptedAt: new Date(), marketingVersion: MARKETING_VERSION },
       });
     }
+    await tx.serviceConsent.upsert({
+      where: { phone_version: { phone, version: SERVICE_NOTIFY_VERSION } },
+      create: { phone, version: SERVICE_NOTIFY_VERSION },
+      update: {},
+    });
+    await tx.user.update({
+      where: { id: user.id },
+      data: { serviceNotifyAcceptedAt: new Date(), serviceNotifyVersion: SERVICE_NOTIFY_VERSION },
+    });
     return { user, isNew: true };
   });
 
   if (result && "birthDateError" in result) {
     return NextResponse.json({ ok: false, error: "Укажите дату рождения" }, { status: 400 });
+  }
+  if (result && "serviceNotifyError" in result) {
+    return NextResponse.json(
+      { ok: false, error: "Подтвердите согласие на уведомления о бонусах — это условие бонусной программы" },
+      { status: 400 }
+    );
   }
   if (!result) {
     return NextResponse.json({ ok: false, error: "Проверка уже использована или истекла" }, { status: 400 });

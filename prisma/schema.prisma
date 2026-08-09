@@ -32,6 +32,8 @@ model User {
   privacyVersion    String?
   marketingAcceptedAt DateTime?
   marketingVersion    String?
+  serviceNotifyAcceptedAt DateTime?
+  serviceNotifyVersion    String?
 
   purchases         Purchase[]        @relation("ClientPurchases")
   adminPurchases    Purchase[]        @relation("AdminPurchases")
@@ -43,6 +45,17 @@ model User {
 
 // Согласие на получение рекламных уведомлений (отдельно от политики ПДн)
 model MarketingConsent {
+  id         String   @id @default(cuid())
+  phone      String
+  version    String
+  acceptedAt DateTime @default(now())
+
+  @@unique([phone, version])
+  @@index([acceptedAt])
+}
+
+// Согласие на сервисные уведомления о бонусах (условие бонусной программы)
+model ServiceConsent {
   id         String   @id @default(cuid())
   phone      String
   version    String

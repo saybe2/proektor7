@@ -1,6 +1,6 @@
 import { db } from "./db";
 import type { Prisma } from "@prisma/client";
-import { BONUS } from "./config";
+import { AUTO_CONFIRM_HOURS, BONUS } from "./config";
 import { sendPushToUser } from "./push";
 import { randomInt } from "node:crypto";
 
@@ -329,6 +329,33 @@ export async function confirmWelcome(userId: string): Promise<DecisionResult> {
   }
 
   return { ok: true };
+}
+
+/** Автоподтверждение заявок, на которых владелец не отреагировал за AUTO_CONFIRM_HOURS часов */
+export async function confirmOverdue(): Promise<{ purchases: number; welcomes: number }> {
+  const cutoff = new Date(Date.now() - AUTO_CONFIRM_HOURS * 60 * 60 * 1000);
+
+  const purchases = await db.purchase.findMany({
+    where: { status: "PENDING", createdAt: { lt: cutoff } },
+    select: { id: true },
+  });
+  let purchasesConfirmed = 0;
+  for (const p of purchases) {
+    const result = await confirmPurchase(p.id);
+    if (result.ok) purchasesConfirmed++;
+  }
+
+  const welcomes = await db.bonusTransaction.findMany({
+    where: { type: "WELCOME", status: "PENDING", createdAt: { lt: cutoff } },
+    select: { userId: true },
+  });
+  let welcomesConfirmed = 0;
+  for (const w of welcomes) {
+    const result = await confirmWelcome(w.userId);
+    if (result.ok) welcomesConfirmed++;
+  }
+
+  return { purchases: purchasesConfirmed, welcomes: welcomesConfirmed };
 }
 
 /** Отклонение приветственных бонусов */
