@@ -62,6 +62,7 @@ export async function POST(req: NextRequest) {
       if (!date || Number.isNaN(date.getTime())) return { birthDateError: true as const };
       birthDate = date;
       if (parsed.data.serviceNotifyAccepted !== true) return { serviceNotifyError: true as const };
+      if (parsed.data.marketingAccepted !== true) return { marketingError: true as const };
     }
 
     const consumed = await tx.otpCode.deleteMany({
@@ -122,6 +123,12 @@ export async function POST(req: NextRequest) {
   if (result && "serviceNotifyError" in result) {
     return NextResponse.json(
       { ok: false, error: "Подтвердите согласие на уведомления о бонусах — это условие бонусной программы" },
+      { status: 400 }
+    );
+  }
+  if (result && "marketingError" in result) {
+    return NextResponse.json(
+      { ok: false, error: "Подтвердите согласие на рекламные уведомления" },
       { status: 400 }
     );
   }

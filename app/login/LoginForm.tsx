@@ -296,13 +296,13 @@ export default function LoginForm() {
           onChange={(event) => setMarketingAccepted(event.target.checked)}
         />
         <span>
-          По желанию. Хочу получать рекламные уведомления об акциях и скидках. Можно отключить в любой момент в настройках кабинета.
+          <b className="text-brand-dark">Обязательно.</b> Согласен получать рекламные уведомления об акциях и скидках кафе. Можно отключить в любой момент в настройках кабинета.
         </span>
       </label>
       {error && <p className="text-red-600 text-sm font-semibold">{error}</p>}
       <button
         className="btn-brand w-full"
-        disabled={loading || !birthDate || !serviceNotifyAccepted}
+        disabled={loading || !birthDate || !serviceNotifyAccepted || !marketingAccepted}
         onClick={() => void finishLogin({ name, birthDate, refCode: refCode || undefined, marketingAccepted, serviceNotifyAccepted })}
       >
         {loading ? "Создаём аккаунт..." : "Зарегистрироваться (+150 бонусов)"}
