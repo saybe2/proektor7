@@ -71,7 +71,7 @@ export async function recordPurchase(params: {
   userId: string;
   amount: number; // сумма чека, руб
   bonusesToSpend: number;
-  adminId: string;
+  adminId?: string;
 }): Promise<PurchaseResult> {
   const { userId, amount, bonusesToSpend, adminId } = params;
 
