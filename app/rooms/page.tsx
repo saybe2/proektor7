@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { db } from "@/lib/db";
 import { PRICES, SITE } from "@/lib/config";
-import { IconUsers } from "@/components/icons";
 import { DEFAULT_ROOMS } from "@/lib/rooms";
 import RoomGallery from "@/components/RoomGallery";
 import BookingActions from "@/components/BookingActions";
@@ -68,10 +67,6 @@ export default async function RoomsPage() {
                   </div>
                 </div>
                 <p className="text-sm md:text-base text-[#3c3c6e] mt-2">{room.description}</p>
-                <div className="mt-4 flex items-center gap-2 text-sm font-semibold text-brand-dark">
-                  <IconUsers className="w-4 h-4 text-brand" />
-                  от {room.minCapacity} до {room.capacity} человек
-                </div>
                 <BookingActions />
               </div>
             </div>
