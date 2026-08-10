@@ -52,3 +52,8 @@ public/img/uploads/
 
 # исходники фотографий комнат после оптимизации в public/img/rooms
 /* комната/
+
+# локальные исходники и превью (не публиковать)
+/logo/
+/splash-preview.html
+/privacy_policy_proektor7.pdf
