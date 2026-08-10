@@ -20,8 +20,13 @@ export async function POST(req: NextRequest) {
 
   const result = await checkPhoneVerification(phone, body.data.attemptToken, body.data.mockCode);
   if (result.ok && result.verified) {
-    const user = await db.user.findUnique({ where: { phone }, select: { id: true } });
-    return NextResponse.json({ ...result, profileRequired: !user });
+    const user = await db.user.findUnique({
+      where: { phone },
+      select: { isGuest: true },
+    });
+    // гостю, заведённому кассой, тоже нужно заполнить профиль: номер он
+    // до этого не подтверждал и согласия не подписывал
+    return NextResponse.json({ ...result, profileRequired: !user || user.isGuest });
   }
   return NextResponse.json(result, { status: result.ok ? 200 : 400 });
 }

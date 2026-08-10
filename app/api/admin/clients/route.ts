@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
         { name: { contains: q } },
       ],
     },
-    select: { id: true, phone: true, name: true, bonusBalance: true, createdAt: true },
+    select: { id: true, phone: true, name: true, bonusBalance: true, isGuest: true, createdAt: true },
     take: 10,
     orderBy: { createdAt: "desc" },
   });

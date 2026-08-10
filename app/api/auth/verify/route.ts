@@ -3,7 +3,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { normalizePhone, createSession } from "@/lib/auth";
 import { checkPhoneVerification } from "@/lib/otp";
-import { createUserWithWelcomeBonus } from "@/lib/bonus";
+import { convertGuestToClient, createUserWithWelcomeBonus } from "@/lib/bonus";
 import { PRIVACY_VERSION, MARKETING_VERSION, SERVICE_NOTIFY_VERSION } from "@/lib/config";
 import { parseBirthDate } from "@/lib/format";
 
@@ -56,9 +56,12 @@ export async function POST(req: NextRequest) {
 
   const result = await db.$transaction(async (tx) => {
     const existing = await tx.user.findUnique({ where: { phone } });
+    // гость (запись заведена кассой) проходит регистрацию как новый клиент:
+    // подтверждает номер, заполняет профиль и получает приветственные бонусы
+    const isRegistration = !existing || existing.isGuest;
 
     let birthDate: Date | undefined;
-    if (!existing) {
+    if (isRegistration) {
       // общий разбор даты: иначе регистрация и профиль трактуют её
       // по-разному и день рождения съезжает на сутки
       const date = parsed.data.birthDate ? parseBirthDate(parsed.data.birthDate) : null;
@@ -78,7 +81,7 @@ export async function POST(req: NextRequest) {
     });
     if (consumed.count !== 1) return null;
 
-    if (existing) {
+    if (existing && !existing.isGuest) {
       const user = await tx.user.update({
         where: { id: existing.id },
         data: {
@@ -89,14 +92,16 @@ export async function POST(req: NextRequest) {
       return { user, isNew: false };
     }
 
-    const user = await createUserWithWelcomeBonus({
-      phone,
+    const profile = {
       name: parsed.data.name?.trim() || undefined,
       birthDate,
       refCode: parsed.data.refCode?.trim().toUpperCase() || undefined,
       privacyAcceptedAt: consent.acceptedAt,
       privacyVersion: PRIVACY_VERSION,
-    }, tx);
+    };
+    const user = existing
+      ? await convertGuestToClient({ userId: existing.id, ...profile }, tx)
+      : await createUserWithWelcomeBonus({ phone, ...profile }, tx);
     if (parsed.data.marketingAccepted === true) {
       await tx.marketingConsent.upsert({
         where: { phone_version: { phone, version: MARKETING_VERSION } },

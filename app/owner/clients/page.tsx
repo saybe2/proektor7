@@ -35,7 +35,7 @@ export default async function OwnerClientsPage({ searchParams }: { searchParams:
       {selected && (
         <section className="card p-5 md:p-7 mb-8">
           <div className="flex flex-wrap justify-between gap-4 border-b-2 border-[#111118] pb-5 mb-5">
-            <div><h2 className="h-display text-2xl">{selected.name || "Без имени"}</h2><a className="font-bold text-brand" href={telHref(`+${selected.phone}`)}>+{selected.phone}</a></div>
+            <div><h2 className="h-display text-2xl">{selected.name || (selected.isGuest ? "Гость" : "Без имени")}</h2><a className="font-bold text-brand" href={telHref(`+${selected.phone}`)}>+{selected.phone}</a>{selected.isGuest && <div className="text-xs font-bold text-[#66656f] mt-1">Заведён кассой, не зарегистрирован на сайте — бонусы копятся до регистрации</div>}</div>
             <div className="text-right"><div className="text-3xl font-black text-brand">{selected.bonusBalance}</div><div className="text-xs font-bold">бонусов</div></div>
           </div>
           <div className="grid md:grid-cols-2 gap-6">
@@ -64,7 +64,7 @@ export default async function OwnerClientsPage({ searchParams }: { searchParams:
           <thead className="bg-[#111118] text-white text-left"><tr><th className="p-3">Клиент</th><th className="p-3">Телефон</th><th className="p-3">ДР</th><th className="p-3">Чеков</th><th className="p-3">Выручка</th><th className="p-3">Бонусы</th><th className="p-3">Друзья</th></tr></thead>
           <tbody>{clients.map((client) => {
             const revenue = client.purchases.reduce((sum, purchase) => sum + purchase.amount, 0);
-            return <tr key={client.id} className="border-b border-[#d8d4ca] hover:bg-brand-bg"><td className="p-3"><Link href={`/owner/clients?client=${client.id}`} className="font-black text-brand">{client.name || "Без имени"}</Link></td><td className="p-3">+{client.phone}</td><td className="p-3">{client.birthDate ? new Date(client.birthDate).toLocaleDateString("ru-RU", { day: "numeric", month: "long" }) : "—"}</td><td className="p-3">{client.purchases.length}</td><td className="p-3 font-bold">{revenue} ₽</td><td className="p-3">{client.bonusBalance}</td><td className="p-3">{client.referrals.length}</td></tr>;
+            return <tr key={client.id} className="border-b border-[#d8d4ca] hover:bg-brand-bg"><td className="p-3"><Link href={`/owner/clients?client=${client.id}`} className="font-black text-brand">{client.name || (client.isGuest ? "Гость" : "Без имени")}</Link>{client.isGuest && <span className="ml-2 text-xs font-bold text-[#66656f]">не зарегистрирован</span>}</td><td className="p-3">+{client.phone}</td><td className="p-3">{client.birthDate ? new Date(client.birthDate).toLocaleDateString("ru-RU", { day: "numeric", month: "long" }) : "—"}</td><td className="p-3">{client.purchases.length}</td><td className="p-3 font-bold">{revenue} ₽</td><td className="p-3">{client.bonusBalance}</td><td className="p-3">{client.referrals.length}</td></tr>;
           })}</tbody>
         </table>
       </div>

@@ -9,6 +9,7 @@ type Client = {
   phone: string;
   name: string | null;
   bonusBalance: number;
+  isGuest: boolean;
   createdAt: string;
 };
 
@@ -73,8 +74,10 @@ export default function AdminPanel({ isOwner }: { isOwner: boolean }) {
   }
 
   const amountNum = Number(amount) || 0;
+  // гость не подтверждал номер: бонусы копятся, но списать их нельзя
+  const canRedeem = Boolean(selected && !selected.isGuest);
   const maxRedeem =
-    amountNum >= BONUS.MIN_CHECK_FOR_REDEEM
+    canRedeem && amountNum >= BONUS.MIN_CHECK_FOR_REDEEM
       ? Math.floor((amountNum * BONUS.MAX_REDEEM_PERCENT) / 100)
       : 0;
 
@@ -113,6 +116,9 @@ export default function AdminPanel({ isOwner }: { isOwner: boolean }) {
                 <div>
                   <div className="font-bold text-brand-dark">{c.name || "Без имени"}</div>
                   <div className="text-sm text-[#3c3c6e]">{isOwner ? `+${c.phone}` : `Номер заканчивается на ${c.phone}`}</div>
+                  {c.isGuest && (
+                    <div className="text-xs text-[#3c3c6e]">Не зарегистрирован — списание недоступно</div>
+                  )}
                 </div>
                 <div className="font-extrabold text-brand">{c.bonusBalance} б.</div>
               </button>
@@ -155,12 +161,14 @@ export default function AdminPanel({ isOwner }: { isOwner: boolean }) {
                 min={0}
                 value={bonuses}
                 onChange={(e) => setBonuses(e.target.value)}
-                disabled={amountNum < BONUS.MIN_CHECK_FOR_REDEEM}
+                disabled={!canRedeem || amountNum < BONUS.MIN_CHECK_FOR_REDEEM}
               />
               <div className="text-xs text-[#3c3c6e] mt-1">
-                {amountNum >= BONUS.MIN_CHECK_FOR_REDEEM
-                  ? `Макс: ${Math.min(maxRedeem, selected.bonusBalance)} (${BONUS.MAX_REDEEM_PERCENT}% чека)`
-                  : `Списание доступно при чеке от ${BONUS.MIN_CHECK_FOR_REDEEM} ₽`}
+                {!canRedeem
+                  ? "Гость не зарегистрирован на сайте — бонусы копятся, списать их можно после регистрации"
+                  : amountNum >= BONUS.MIN_CHECK_FOR_REDEEM
+                    ? `Макс: ${Math.min(maxRedeem, selected.bonusBalance)} (${BONUS.MAX_REDEEM_PERCENT}% чека)`
+                    : `Списание доступно при чеке от ${BONUS.MIN_CHECK_FOR_REDEEM} ₽`}
               </div>
             </div>
           </div>

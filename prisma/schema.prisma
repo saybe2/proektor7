@@ -22,6 +22,9 @@ model User {
   name         String?
   birthDate    DateTime?
   role         Role     @default(CLIENT)
+  // Гость — запись, заведённая кассой по телефону: номер не подтверждён,
+  // согласия не подписаны. Бонусы копятся, но списывать их нельзя до регистрации.
+  isGuest      Boolean  @default(false)
   bonusBalance Int      @default(0)
   refCode      String   @unique // код реферальной ссылки
   referredBy   User?    @relation("Referrals", fields: [referredById], references: [id])
@@ -43,6 +46,7 @@ model User {
   feedbacks         Feedback[]
 
   @@index([role])
+  @@index([role, isGuest])
   @@index([referredById])
 }
 

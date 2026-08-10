@@ -22,8 +22,8 @@ export default async function OwnerPage() {
     bonusesSpent,
     pushSubs,
   ] = await Promise.all([
-    db.user.count({ where: { role: "CLIENT" } }),
-    db.user.count({ where: { role: "CLIENT", createdAt: { gt: monthAgo } } }),
+    db.user.count({ where: { role: "CLIENT", isGuest: false } }),
+    db.user.count({ where: { role: "CLIENT", isGuest: false, createdAt: { gt: monthAgo } } }),
     db.purchase.count({ where: { createdAt: { gt: monthAgo } } }),
     db.purchase.aggregate({
       where: { createdAt: { gt: monthAgo } },
@@ -46,14 +46,14 @@ export default async function OwnerPage() {
     db.purchase.findMany({
       where: { status: "PENDING" },
       include: {
-        user: { select: { name: true, phone: true } },
+        user: { select: { name: true, phone: true, isGuest: true } },
         bonusTransactions: true,
       },
       orderBy: { createdAt: "asc" },
     }),
     db.bonusTransaction.findMany({
       where: { type: "WELCOME", status: "PENDING" },
-      include: { user: { select: { id: true, name: true, phone: true, createdAt: true } } },
+      include: { user: { select: { id: true, name: true, phone: true, isGuest: true } } },
       orderBy: { createdAt: "asc" },
     }),
   ]);
@@ -97,8 +97,9 @@ export default async function OwnerPage() {
             amount: p.amount,
             bonusesSpent: p.bonusesSpent,
             createdAt: p.createdAt.toISOString(),
-            clientName: p.user.name || "Клиент",
+            clientName: p.user.name || (p.user.isGuest ? "Гость" : "Клиент"),
             clientPhone: p.user.phone,
+            isGuest: p.user.isGuest,
             cashback: p.bonusTransactions
               .filter((t) => t.type === "CASHBACK")
               .reduce((sum, t) => sum + t.amount, 0),
@@ -110,7 +111,8 @@ export default async function OwnerPage() {
             userId: w.user.id,
             name: w.user.name || "Клиент",
             phone: w.user.phone,
-            createdAt: w.user.createdAt.toISOString(),
+            // время самой заявки: у бывшего гостя запись создана раньше регистрации
+            createdAt: w.createdAt.toISOString(),
           }))}
         />
       )}

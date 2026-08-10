@@ -13,6 +13,7 @@ type PendingPurchase = {
   createdAt: string;
   clientName: string;
   clientPhone: string;
+  isGuest: boolean;
   cashback: number;
   referralBonus: number;
 };
@@ -60,6 +61,9 @@ export default function PendingConfirmations({
             <div>
               <div className="font-semibold text-sm text-brand-dark">
                 {p.clientName} (+{p.clientPhone})
+                {p.isGuest && (
+                  <span className="ml-2 text-xs font-bold text-[#9aa0c0]">не зарегистрирован</span>
+                )}
               </div>
               <div className="text-xs text-[#3c3c6e]">
                 чек {p.amount} ₽

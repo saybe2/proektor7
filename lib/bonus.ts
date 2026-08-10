@@ -1,8 +1,10 @@
 import { db } from "./db";
-import type { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { AUTO_CONFIRM_HOURS, BONUS } from "./config";
 import { sendPushToUser } from "./push";
 import { randomInt } from "node:crypto";
+
+type DbClient = Prisma.TransactionClient | typeof db;
 
 /** Генерация уникального реферального кода */
 export function generateRefCode(): string {
@@ -15,6 +17,54 @@ export function generateRefCode(): string {
 }
 
 /**
+ * Доступные к списанию бонусы: баланс минус то, что заморожено
+ * в неподтверждённых чеках. Запросы последовательные — внутри транзакции
+ * параллельные обращения к одному соединению небезопасны.
+ */
+export async function getBonusState(userId: string, client: DbClient = db) {
+  const user = await client.user.findUnique({
+    where: { id: userId },
+    select: { bonusBalance: true },
+  });
+  const pending = await client.bonusTransaction.aggregate({
+    where: { userId, type: "REDEEM", status: "PENDING" },
+    _sum: { amount: true },
+  });
+  const balance = user?.bonusBalance ?? 0;
+  const pendingRedeem = Math.abs(pending._sum.amount || 0);
+  return { balance, pendingRedeem, available: balance - pendingRedeem };
+}
+
+/**
+ * Гостевая запись: касса завела клиента по телефону, но номер не подтверждён
+ * и согласия не подписаны. Бонусы начисляются и ждут регистрации.
+ */
+export async function findOrCreateGuest(phone: string) {
+  const existing = await db.user.findUnique({ where: { phone } });
+  if (existing) return existing;
+
+  // повтор нужен на два случая: параллельный запрос с тем же телефоном
+  // и совпадение сгенерированного реферального кода
+  for (let attempt = 0; attempt < 5; attempt++) {
+    try {
+      return await db.user.create({
+        data: { phone, refCode: generateRefCode(), isGuest: true },
+      });
+    } catch (error) {
+      if (
+        !(error instanceof Prisma.PrismaClientKnownRequestError) ||
+        error.code !== "P2002"
+      ) {
+        throw error;
+      }
+      const created = await db.user.findUnique({ where: { phone } });
+      if (created) return created;
+    }
+  }
+  throw new Error("Не удалось создать гостевую запись");
+}
+
+/**
  * Регистрация пользователя: welcome-бонусы + привязка реферера
  */
 export async function createUserWithWelcomeBonus(params: {
@@ -24,9 +74,9 @@ export async function createUserWithWelcomeBonus(params: {
   refCode?: string; // код пригласившего
   privacyAcceptedAt: Date;
   privacyVersion: string;
-}, client: Prisma.TransactionClient | typeof db = db) {
+}, client: DbClient = db) {
   const referrer = params.refCode
-    ? await client.user.findUnique({ where: { refCode: params.refCode } })
+    ? await findReferrer(params.refCode, client)
     : null;
 
   // гарантируем уникальность собственного кода
@@ -57,8 +107,62 @@ export async function createUserWithWelcomeBonus(params: {
   });
 }
 
+/**
+ * Превращение гостя в полноценный аккаунт после подтверждения номера.
+ * Бонусы, накопленные до регистрации, сохраняются — сверху идут приветственные.
+ */
+export async function convertGuestToClient(params: {
+  userId: string;
+  name?: string;
+  birthDate?: Date;
+  refCode?: string;
+  privacyAcceptedAt: Date;
+  privacyVersion: string;
+}, client: DbClient = db) {
+  const referrer = params.refCode
+    ? await findReferrer(params.refCode, client)
+    : null;
+
+  return client.user.update({
+    where: { id: params.userId },
+    data: {
+      isGuest: false,
+      name: params.name,
+      birthDate: params.birthDate,
+      // у гостя уже есть собственный код — на себя пригласить нельзя
+      referredById: referrer && referrer.id !== params.userId ? referrer.id : undefined,
+      privacyAcceptedAt: params.privacyAcceptedAt,
+      privacyVersion: params.privacyVersion,
+      bonusTransactions: {
+        create: {
+          amount: BONUS.WELCOME,
+          type: "WELCOME",
+          status: "PENDING",
+          comment: "Приветственные бонусы за регистрацию",
+        },
+      },
+    },
+  });
+}
+
+/** Пригласивший: гостевые записи кодами не делятся, их код нигде не показан */
+function findReferrer(refCode: string, client: DbClient = db) {
+  return client.user.findFirst({ where: { refCode, isGuest: false } });
+}
+
 export type PurchaseResult =
-  | { ok: true; purchaseId: string; cashback: number; referralBonus: number }
+  | {
+      ok: true;
+      purchaseId: string;
+      cashback: number;
+      referralBonus: number;
+      /** Сколько бонусов списано (заморожено до подтверждения) */
+      bonusesSpent: number;
+      /** Доступно к списанию после операции: кэшбэк ещё ждёт подтверждения */
+      newBalance: number;
+      /** Чек проведён на гостя — бонусы копятся, но списать их нельзя */
+      isGuest: boolean;
+    }
   | { ok: false; error: string };
 
 /**
@@ -87,6 +191,14 @@ export async function recordPurchase(params: {
   if (user.role !== "CLIENT") return { ok: false, error: "Операцию можно провести только для клиента" };
 
   if (bonusesToSpend > 0) {
+    // Гость не подтверждал номер и не подписывал согласия: накопленные бонусы
+    // ждут регистрации, иначе списать их мог бы любой, кто назвал чужой телефон.
+    if (user.isGuest) {
+      return {
+        ok: false,
+        error: "Гость не зарегистрирован на сайте — списать бонусы нельзя",
+      };
+    }
     if (amount < BONUS.MIN_CHECK_FOR_REDEEM) {
       return {
         ok: false,
@@ -100,11 +212,7 @@ export async function recordPurchase(params: {
         error: `Бонусами можно оплатить не более ${BONUS.MAX_REDEEM_PERCENT}% чека (${maxRedeem} бонусов)`,
       };
     }
-    const pendingRedeem = await db.bonusTransaction.aggregate({
-      where: { userId, type: "REDEEM", status: "PENDING" },
-      _sum: { amount: true },
-    });
-    const available = user.bonusBalance - Math.abs(pendingRedeem._sum.amount || 0);
+    const { available } = await getBonusState(userId);
     if (bonusesToSpend > available) {
       return {
         ok: false,
@@ -124,16 +232,7 @@ export async function recordPurchase(params: {
     // Проверку доступных бонусов повторяем внутри транзакции: между чтением
     // выше и записью баланс мог измениться (параллельный чек, корректировка).
     if (bonusesToSpend > 0) {
-      const current = await tx.user.findUnique({
-        where: { id: userId },
-        select: { bonusBalance: true },
-      });
-      const pending = await tx.bonusTransaction.aggregate({
-        where: { userId, type: "REDEEM", status: "PENDING" },
-        _sum: { amount: true },
-      });
-      const availableNow =
-        (current?.bonusBalance ?? 0) - Math.abs(pending._sum.amount || 0);
+      const { available: availableNow } = await getBonusState(userId, tx);
       if (bonusesToSpend > availableNow) {
         return { error: `Недостаточно бонусов (доступно ${availableNow})`, purchase: null };
       }
@@ -204,7 +303,7 @@ export async function recordPurchase(params: {
     for (const owner of owners) {
       await sendPushToUser(owner.id, {
         title: "Новый чек на подтверждение",
-        body: `${user.name || "Клиент"}: чек ${amount} ₽${bonusesToSpend ? `, списание ${bonusesToSpend} б.` : ""}`,
+        body: `${user.name || (user.isGuest ? "Гость" : "Клиент")}: чек ${amount} ₽${bonusesToSpend ? `, списание ${bonusesToSpend} б.` : ""}`,
         url: "/owner",
       });
     }
@@ -212,7 +311,19 @@ export async function recordPurchase(params: {
     console.error("[bonus] push to owners failed", err);
   }
 
-  return { ok: true, purchaseId: result.purchase.id, cashback, referralBonus };
+  // баланс к списанию после операции: кэшбэк ещё ждёт подтверждения,
+  // а списанные бонусы уже заморожены
+  const { available } = await getBonusState(userId);
+
+  return {
+    ok: true,
+    purchaseId: result.purchase.id,
+    cashback,
+    referralBonus,
+    bonusesSpent: bonusesToSpend,
+    newBalance: available,
+    isGuest: user.isGuest,
+  };
 }
 
 export type DecisionResult = { ok: true } | { ok: false; error: string };

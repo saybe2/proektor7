@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { normalizePhone } from "@/lib/auth";
-import { recordPurchase } from "@/lib/bonus";
+import { findOrCreateGuest, recordPurchase } from "@/lib/bonus";
 import { apiError, checkCrmKey, parseBody } from "@/lib/api";
 import { BONUS } from "@/lib/config";
 
@@ -25,9 +25,17 @@ export async function POST(req: NextRequest) {
     return apiError("Некорректный телефон", 400);
   }
 
-  const user = await db.user.findUnique({ where: { phone } });
-  if (!user) {
-    return apiError("Клиент не найден", 404);
+  // Незнакомый номер заводим как гостя: бонусы копятся до регистрации,
+  // иначе кэшбэк за визит терялся бы навсегда. Но при списании гостя не
+  // создаём — иначе неудачная попытка оставляла бы пустую запись.
+  const existing = await db.user.findUnique({ where: { phone } });
+  if (!existing && body.data.bonusesToSpend > 0) {
+    return apiError("Гость не зарегистрирован на сайте — списать бонусы нельзя", 400);
+  }
+
+  const user = existing ?? (await findOrCreateGuest(phone));
+  if (user.role !== "CLIENT") {
+    return apiError("Операцию можно провести только для клиента", 400);
   }
 
   const result = await recordPurchase({
