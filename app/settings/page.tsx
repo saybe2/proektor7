@@ -1,23 +1,16 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, cabinetPath } from "@/lib/auth";
+import { dateInputValue } from "@/lib/format";
 import PushToggle from "@/app/cabinet/PushToggle";
 import ProfileForm from "./ProfileForm";
 
 export const dynamic = "force-dynamic";
 
-function dateInputValue(date: Date | null) {
-  if (!date) return "";
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
 export default async function SettingsPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
-  const cabinetHref = user.role === "OWNER" ? "/owner" : user.role === "ADMIN" ? "/admin" : "/cabinet";
+  const cabinetHref = cabinetPath(user.role);
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-10 md:py-16">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { postJson } from "@/lib/client-api";
 
 export default function FeedbackForm({ initialName, initialPhone }: { initialName: string; initialPhone: string }) {
   const [name, setName] = useState(initialName);
@@ -15,21 +16,16 @@ export default function FeedbackForm({ initialName, initialPhone }: { initialNam
     setResult("");
     setError("");
     try {
-      const res = await fetch("/api/feedback", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: name || undefined,
-          phone: phone || undefined,
-          message,
-        }),
+      const data = await postJson("/api/feedback", {
+        name: name || undefined,
+        phone: phone || undefined,
+        message,
       });
-      const data = await res.json();
       if (data.ok) {
         setResult("Сообщение отправлено. Директор получит уведомление.");
         setMessage("");
       } else {
-        setError(data.error || "Ошибка");
+        setError(data.error);
       }
     } finally {
       setLoading(false);
@@ -74,7 +70,7 @@ export default function FeedbackForm({ initialName, initialPhone }: { initialNam
         <button
           className="btn-brand w-full"
           disabled={loading || message.trim().length < 10}
-          onClick={send}
+          onClick={() => void send()}
         >
           {loading ? "Отправляем..." : "Отправить директору"}
         </button>

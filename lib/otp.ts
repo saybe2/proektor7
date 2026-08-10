@@ -31,7 +31,7 @@ export type StartPhoneVerificationResult =
       callPhone: string;
       callPhonePretty: string;
     }
-  | { ok: false; error: string };
+  | { ok: false; error: string; reason: "cooldown" | "unavailable" };
 
 export type CheckPhoneVerificationResult =
   | { ok: true; verified: boolean }
@@ -66,7 +66,7 @@ export async function startPhoneVerification(
     attemptId = attempt.id;
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
-      return { ok: false, error: "Проверка уже запущена. Подождите минуту." };
+      return { ok: false, error: "Проверка уже запущена. Подождите минуту.", reason: "cooldown" };
     }
     throw error;
   }
@@ -86,13 +86,15 @@ export async function startPhoneVerification(
 
   if (provider !== "smsru") {
     await removeReservedAttempt(attemptId, attemptToken);
-    return { ok: false, error: "Сервис подтверждения номера не настроен" };
+    return { ok: false, error: "Сервис подтверждения номера не настроен", reason: "unavailable" };
   }
 
   const apiId = process.env.SMSRU_API_ID;
   if (!apiId) {
     await removeReservedAttempt(attemptId, attemptToken);
-    return { ok: false, error: "SMSRU_API_ID не настроен" };
+    // текст ошибки провайдера наружу не отдаём — он раскрывает настройки сервера
+    console.error("[otp] SMSRU_API_ID не настроен");
+    return { ok: false, error: "Сервис звонков временно недоступен", reason: "unavailable" };
   }
 
   const params = new URLSearchParams({ api_id: apiId, phone, json: "1" });
@@ -102,7 +104,7 @@ export async function startPhoneVerification(
   }).catch(() => null);
   if (!response?.ok) {
     await removeReservedAttempt(attemptId, attemptToken);
-    return { ok: false, error: "Сервис звонков временно недоступен" };
+    return { ok: false, error: "Сервис звонков временно недоступен", reason: "unavailable" };
   }
 
   const data = (await response.json().catch(() => null)) as SmsRuStartResponse | null;
@@ -114,9 +116,12 @@ export async function startPhoneVerification(
     !data.call_phone
   ) {
     await removeReservedAttempt(attemptId, attemptToken);
+    // ответ провайдера логируем, но пользователю показываем нейтральный текст
+    console.error("[otp] callcheck/add failed", data?.status_text || data?.status_code);
     return {
       ok: false,
-      error: data?.status_text || "Не удалось подготовить звонок. Попробуйте позже.",
+      error: "Не удалось подготовить звонок. Попробуйте позже.",
+      reason: "unavailable",
     };
   }
 

@@ -1,18 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { normalizePhone } from "@/lib/auth";
 import { checkPhoneVerification } from "@/lib/otp";
 import { db } from "@/lib/db";
+import { apiError, parseBody } from "@/lib/api";
+
+const schema = z.object({
+  phone: z.string().min(10).max(20),
+  attemptToken: z.string().length(48),
+  mockCode: z.string().min(4).max(4).optional(),
+});
 
 export async function POST(req: NextRequest) {
-  const body = await req.json().catch(() => null);
-  const phone = normalizePhone(String(body?.phone || ""));
-  const attemptToken = String(body?.attemptToken || "");
-  const mockCode = body?.mockCode ? String(body.mockCode) : undefined;
-  if (!phone || attemptToken.length !== 48) {
-    return NextResponse.json({ ok: false, error: "Некорректная попытка проверки" }, { status: 400 });
-  }
+  const body = await parseBody(req, schema, "Некорректная попытка проверки");
+  if (!body.ok) return body.response;
 
-  const result = await checkPhoneVerification(phone, attemptToken, mockCode);
+  const phone = normalizePhone(body.data.phone);
+  if (!phone) return apiError("Некорректная попытка проверки", 400);
+
+  const result = await checkPhoneVerification(phone, body.data.attemptToken, body.data.mockCode);
   if (result.ok && result.verified) {
     const user = await db.user.findUnique({ where: { phone }, select: { id: true } });
     return NextResponse.json({ ...result, profileRequired: !user });

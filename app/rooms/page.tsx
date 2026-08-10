@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { db } from "@/lib/db";
 import { PRICES, SITE } from "@/lib/config";
-import { DEFAULT_ROOMS } from "@/lib/rooms";
+import { DEFAULT_ROOMS, parseImages } from "@/lib/rooms";
 import RoomGallery from "@/components/RoomGallery";
 import BookingActions from "@/components/BookingActions";
 
@@ -11,15 +11,6 @@ export const metadata: Metadata = {
   title: "Комнаты с проектором и приставками",
   description: `Аренда уютных комнат с проектором и приставками в тайм-кафе Proектор, ${SITE.CITY}. ${PRICES.ROOM_PER_PERSON} ₽/час с человека.`,
 };
-
-function parseImages(value: string) {
-  try {
-    const images: unknown = JSON.parse(value);
-    return Array.isArray(images) ? images.filter((item): item is string => typeof item === "string") : [];
-  } catch {
-    return [];
-  }
-}
 
 export default async function RoomsPage() {
   const databaseRooms = await db.room.findMany({

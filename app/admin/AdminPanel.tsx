@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { getJson, postJson } from "@/lib/client-api";
+import { AUTO_CONFIRM_HOURS, BONUS } from "@/lib/config";
 
 type Client = {
   id: string;
@@ -18,14 +20,24 @@ export default function AdminPanel({ isOwner }: { isOwner: boolean }) {
   const [bonuses, setBonuses] = useState("");
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
   const [loading, setLoading] = useState(false);
+  const [searching, setSearching] = useState(false);
 
-  async function search() {
-    setMessage(null);
-    setSelected(null);
-    const res = await fetch(`/api/admin/clients?q=${encodeURIComponent(query)}`);
-    const data = await res.json();
-    if (data.ok) setClients(data.clients);
-    else setMessage({ ok: false, text: data.error || "Ошибка поиска" });
+  async function search(keepMessage = false) {
+    if (searching) return;
+    setSearching(true);
+    if (!keepMessage) {
+      setMessage(null);
+      setSelected(null);
+    }
+    try {
+      const data = await getJson<{ clients: Client[] }>(
+        `/api/admin/clients?q=${encodeURIComponent(query)}`
+      );
+      if (data.ok) setClients(data.clients);
+      else setMessage({ ok: false, text: data.error });
+    } finally {
+      setSearching(false);
+    }
   }
 
   async function submitPurchase() {
@@ -33,16 +45,14 @@ export default function AdminPanel({ isOwner }: { isOwner: boolean }) {
     setLoading(true);
     setMessage(null);
     try {
-      const res = await fetch("/api/admin/purchase", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      const data = await postJson<{ cashback: number; referralBonus: number }>(
+        "/api/admin/purchase",
+        {
           userId: selected.id,
           amount: Number(amount),
           bonusesToSpend: Number(bonuses) || 0,
-        }),
-      });
-      const data = await res.json();
+        }
+      );
       if (!data.ok) {
         setMessage({ ok: false, text: data.error });
         return;
@@ -51,19 +61,22 @@ export default function AdminPanel({ isOwner }: { isOwner: boolean }) {
         ok: true,
         text: `Чек отправлен на подтверждение владельцу. Клиент получит +${data.cashback} бонусов${
           data.referralBonus ? `, рефереру +${data.referralBonus}` : ""
-        } после подтверждения или автоматически через 18 часов`,
+        } после подтверждения или автоматически через ${AUTO_CONFIRM_HOURS} часов`,
       });
       setAmount("");
       setBonuses("");
-      // обновляем баланс в списке
-      search();
+      // обновляем баланс в списке, не затирая сообщение об успехе
+      await search(true);
     } finally {
       setLoading(false);
     }
   }
 
   const amountNum = Number(amount) || 0;
-  const maxRedeem = amountNum >= 500 ? Math.floor(amountNum / 2) : 0;
+  const maxRedeem =
+    amountNum >= BONUS.MIN_CHECK_FOR_REDEEM
+      ? Math.floor((amountNum * BONUS.MAX_REDEEM_PERCENT) / 100)
+      : 0;
 
   return (
     <div className="space-y-6">
@@ -75,11 +88,15 @@ export default function AdminPanel({ isOwner }: { isOwner: boolean }) {
             className="input"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && search()}
+            onKeyDown={(e) => e.key === "Enter" && void search()}
             placeholder="79001234567 или Иван"
           />
-          <button className="btn-brand !px-5 shrink-0" onClick={search}>
-            Найти
+          <button
+            className="btn-brand !px-5 shrink-0"
+            onClick={() => void search()}
+            disabled={searching}
+          >
+            {searching ? "Ищем..." : "Найти"}
           </button>
         </div>
 
@@ -114,7 +131,7 @@ export default function AdminPanel({ isOwner }: { isOwner: boolean }) {
             На счету: <b>{selected.bonusBalance} бонусов</b>
           </p>
           <p className="text-xs text-[#3c3c6e] mb-4">
-            Бонусы применяются после подтверждения владельцем (автоматически через 18 ч).
+            Бонусы применяются после подтверждения владельцем (автоматически через {AUTO_CONFIRM_HOURS} ч).
           </p>
 
           <div className="grid gap-4 sm:grid-cols-2">
@@ -138,12 +155,12 @@ export default function AdminPanel({ isOwner }: { isOwner: boolean }) {
                 min={0}
                 value={bonuses}
                 onChange={(e) => setBonuses(e.target.value)}
-                disabled={amountNum < 500}
+                disabled={amountNum < BONUS.MIN_CHECK_FOR_REDEEM}
               />
               <div className="text-xs text-[#3c3c6e] mt-1">
-                {amountNum >= 500
-                  ? `Макс: ${Math.min(maxRedeem, selected.bonusBalance)} (50% чека)`
-                  : "Списание доступно при чеке от 500 ₽"}
+                {amountNum >= BONUS.MIN_CHECK_FOR_REDEEM
+                  ? `Макс: ${Math.min(maxRedeem, selected.bonusBalance)} (${BONUS.MAX_REDEEM_PERCENT}% чека)`
+                  : `Списание доступно при чеке от ${BONUS.MIN_CHECK_FOR_REDEEM} ₽`}
               </div>
             </div>
           </div>
@@ -157,7 +174,7 @@ export default function AdminPanel({ isOwner }: { isOwner: boolean }) {
           <button
             className="btn-brand w-full mt-4"
             disabled={loading || amountNum <= 0}
-            onClick={submitPurchase}
+            onClick={() => void submitPurchase()}
           >
             {loading ? "Проводим..." : `Провести чек на ${amountNum || 0} ₽`}
           </button>
@@ -168,7 +185,7 @@ export default function AdminPanel({ isOwner }: { isOwner: boolean }) {
       {selected && isOwner && (
         <AdjustBonus
           client={selected}
-          onDone={() => search()}
+          onDone={() => void search(true)}
         />
       )}
     </div>
@@ -191,21 +208,16 @@ function AdjustBonus({
     setBusy(true);
     setMsg(null);
     try {
-      const res = await fetch("/api/admin/adjust-bonus", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: client.id,
-          amount: Number(amount),
-          comment: comment || undefined,
-        }),
+      const data = await postJson<{ newBalance: number }>("/api/admin/adjust-bonus", {
+        userId: client.id,
+        amount: Number(amount),
+        comment: comment || undefined,
       });
-      const data = await res.json();
       if (!data.ok) {
         setMsg({ ok: false, text: data.error });
         return;
       }
-      setMsg({ ok: true, text: `Готово! Новый баланс: ${data.newBalance}` });
+      setMsg({ ok: true, text: `Готово. Новый баланс: ${data.newBalance}` });
       setAmount("");
       setComment("");
       onDone();
@@ -251,7 +263,7 @@ function AdjustBonus({
       <button
         className="btn-outline w-full mt-4"
         disabled={busy || !Number(amount)}
-        onClick={submit}
+        onClick={() => void submit()}
       >
         {busy ? "Применяем..." : "Применить корректировку"}
       </button>

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { db } from "@/lib/db";
 import Image from "next/image";
+import { BONUS } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
 
@@ -29,7 +30,7 @@ export default async function MenuPage() {
         Меню
       </h1>
       <p className="text-center text-[#3c3c6e] mb-10">
-        Оплачивай бонусами до 50% чека (при заказе от 500 ₽)
+        Оплачивай бонусами до {BONUS.MAX_REDEEM_PERCENT}% чека (при заказе от {BONUS.MIN_CHECK_FOR_REDEEM} ₽)
       </p>
 
       <div className="border-2 border-[#111118] bg-[#ffdd38] px-4 py-3 mb-8 text-sm font-bold text-center">

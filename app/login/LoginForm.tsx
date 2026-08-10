@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { cabinetPath } from "@/lib/routes";
+import { AUTO_CONFIRM_HOURS, BONUS } from "@/lib/config";
 
 type Step = "phone" | "call" | "profile";
 type Channel = "callcheck" | "mock" | "";
@@ -57,8 +59,7 @@ export default function LoginForm() {
         completingRef.current = false;
         return false;
       }
-      const target =
-        data.role === "OWNER" ? "/owner" : data.role === "ADMIN" ? "/admin" : "/cabinet";
+      const target = cabinetPath(data.role);
       router.push(target);
       router.refresh();
       return true;
@@ -285,7 +286,7 @@ export default function LoginForm() {
           onChange={(event) => setServiceNotifyAccepted(event.target.checked)}
         />
         <span>
-          <b className="text-brand-dark">Обязательно.</b> Согласен получать сервисные уведомления о начислении и списании бонусов — это условие участия в бонусной программе. Бонусы зачисляются после подтверждения владельцем или автоматически через 18 часов — уведомление сообщит о зачислении.
+          <b className="text-brand-dark">Обязательно.</b> Согласен получать сервисные уведомления о начислении и списании бонусов — это условие участия в бонусной программе. Бонусы зачисляются после подтверждения владельцем или автоматически через {AUTO_CONFIRM_HOURS} часов — уведомление сообщит о зачислении.
         </span>
       </label>
       <label className="flex items-start gap-3 text-xs text-[#3c3c6e] leading-relaxed cursor-pointer">
@@ -305,7 +306,7 @@ export default function LoginForm() {
         disabled={loading || !birthDate || !serviceNotifyAccepted || !marketingAccepted}
         onClick={() => void finishLogin({ name, birthDate, refCode: refCode || undefined, marketingAccepted, serviceNotifyAccepted })}
       >
-        {loading ? "Создаём аккаунт..." : "Зарегистрироваться (+150 бонусов)"}
+        {loading ? "Создаём аккаунт..." : `Зарегистрироваться (+${BONUS.WELCOME} бонусов)`}
       </button>
     </div>
   );

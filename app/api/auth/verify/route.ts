@@ -5,13 +5,14 @@ import { normalizePhone, createSession } from "@/lib/auth";
 import { checkPhoneVerification } from "@/lib/otp";
 import { createUserWithWelcomeBonus } from "@/lib/bonus";
 import { PRIVACY_VERSION, MARKETING_VERSION, SERVICE_NOTIFY_VERSION } from "@/lib/config";
+import { parseBirthDate } from "@/lib/format";
 
 const schema = z.object({
-  phone: z.string(),
+  phone: z.string().min(10).max(20),
   attemptToken: z.string().length(48),
   mockCode: z.string().min(4).max(4).optional(),
   name: z.string().max(60).optional(),
-  birthDate: z.string().optional(), // YYYY-MM-DD
+  birthDate: z.string().max(10).optional(), // YYYY-MM-DD
   refCode: z.string().max(12).optional(),
   privacyAccepted: z.boolean().optional(),
   marketingAccepted: z.boolean().optional(),
@@ -58,8 +59,10 @@ export async function POST(req: NextRequest) {
 
     let birthDate: Date | undefined;
     if (!existing) {
-      const date = parsed.data.birthDate ? new Date(parsed.data.birthDate) : undefined;
-      if (!date || Number.isNaN(date.getTime())) return { birthDateError: true as const };
+      // общий разбор даты: иначе регистрация и профиль трактуют её
+      // по-разному и день рождения съезжает на сутки
+      const date = parsed.data.birthDate ? parseBirthDate(parsed.data.birthDate) : null;
+      if (!date) return { birthDateError: true as const };
       birthDate = date;
       if (parsed.data.serviceNotifyAccepted !== true) return { serviceNotifyError: true as const };
       if (parsed.data.marketingAccepted !== true) return { marketingError: true as const };

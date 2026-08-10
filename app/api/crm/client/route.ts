@@ -1,27 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
-import { timingSafeEqual } from "node:crypto";
 import { db } from "@/lib/db";
 import { normalizePhone } from "@/lib/auth";
-
-function checkKey(req: NextRequest): boolean {
-  const key = process.env.CRM_API_KEY;
-  if (!key) return false;
-  const provided = req.headers.get("x-api-key") || "";
-  const a = Buffer.from(provided);
-  const b = Buffer.from(key);
-  return a.length === b.length && timingSafeEqual(a, b);
-}
+import { apiError, checkCrmKey } from "@/lib/api";
 
 export async function GET(req: NextRequest) {
-  if (!checkKey(req)) {
-    return NextResponse.json({ ok: false, error: "Нет доступа" }, { status: 403 });
+  if (!checkCrmKey(req)) {
+    return apiError("Нет доступа", 403);
   }
   const phone = normalizePhone(req.nextUrl.searchParams.get("phone") || "");
   if (!phone) {
-    return NextResponse.json({ ok: false, error: "Некорректный телефон" }, { status: 400 });
+    return apiError("Некорректный телефон", 400);
   }
   const user = await db.user.findUnique({ where: { phone } });
-  if (!user || user.role === "OWNER") {
+  // чек можно провести только на клиента, поэтому сотрудников CRM не показываем
+  if (!user || user.role !== "CLIENT") {
     return NextResponse.json({ ok: true, client: { found: false } });
   }
   return NextResponse.json({

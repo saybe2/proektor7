@@ -1,11 +1,11 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
+import { BONUS } from "@/lib/config";
 import LoginForm from "./LoginForm";
 
 export const metadata: Metadata = {
   title: "Вход и регистрация",
-  description:
-    "Войдите по номеру телефона и получите 150 бонусов за регистрацию в тайм-кафе Proектор.",
+  description: `Войдите по номеру телефона и получите ${BONUS.WELCOME} бонусов за регистрацию в тайм-кафе Proектор.`,
 };
 
 export default function LoginPage() {
@@ -15,7 +15,7 @@ export default function LoginPage() {
         Вход / Регистрация
       </h1>
       <p className="text-center text-[#3c3c6e] mb-8">
-        Новым гостям — <b>150 бонусов</b> в подарок
+        Новым гостям — <b>{BONUS.WELCOME} бонусов</b> в подарок
       </p>
       <Suspense>
         <LoginForm />

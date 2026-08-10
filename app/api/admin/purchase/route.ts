@@ -1,30 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { requireStaff } from "@/lib/auth";
+import { guardStaff, parseBody } from "@/lib/api";
 import { recordPurchase } from "@/lib/bonus";
+import { BONUS } from "@/lib/config";
 
 const schema = z.object({
-  userId: z.string(),
-  amount: z.number().int().positive(),
-  bonusesToSpend: z.number().int().min(0).default(0),
+  userId: z.string().min(1).max(40),
+  amount: z.number().int().positive().max(BONUS.MAX_CHECK),
+  bonusesToSpend: z.number().int().min(0).max(BONUS.MAX_CHECK).default(0),
 });
 
 export async function POST(req: NextRequest) {
-  let staff;
-  try {
-    staff = await requireStaff();
-  } catch {
-    return NextResponse.json({ ok: false, error: "Нет доступа" }, { status: 403 });
-  }
+  const access = await guardStaff();
+  if (!access.ok) return access.response;
 
-  const parsed = schema.safeParse(await req.json().catch(() => null));
-  if (!parsed.success) {
-    return NextResponse.json({ ok: false, error: "Некорректные данные" }, { status: 400 });
-  }
+  const body = await parseBody(req, schema);
+  if (!body.ok) return body.response;
 
   const result = await recordPurchase({
-    ...parsed.data,
-    adminId: staff.id,
+    ...body.data,
+    adminId: access.user.id,
   });
 
   return NextResponse.json(result, { status: result.ok ? 200 : 400 });

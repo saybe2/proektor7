@@ -37,16 +37,6 @@ export function IconProjector({ className }: P) {
   );
 }
 
-export function IconCup({ className }: P) {
-  return (
-    <svg className={className || base} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M5 8h12v6a5 5 0 0 1-5 5h-2a5 5 0 0 1-5-5V8z" />
-      <path d="M17 9h1.5a2.5 2.5 0 0 1 0 5H17" />
-      <path d="M8 3.5c0 .8.8 1 .8 1.8S8 6.5 8 6.5M12 3.5c0 .8.8 1 .8 1.8s-.8 1.2-.8 1.2" />
-    </svg>
-  );
-}
-
 export function IconUsers({ className }: P) {
   return (
     <svg className={className || base} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -73,24 +63,6 @@ export function IconPercent({ className }: P) {
       <path d="M19 5L5 19" />
       <circle cx="7" cy="7" r="2.5" />
       <circle cx="17" cy="17" r="2.5" />
-    </svg>
-  );
-}
-
-export function IconCard({ className }: P) {
-  return (
-    <svg className={className || base} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="2" y="5" width="20" height="14" rx="3" />
-      <path d="M2 10h20M6 15h4" />
-    </svg>
-  );
-}
-
-export function IconBell({ className }: P) {
-  return (
-    <svg className={className || base} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M18 9a6 6 0 1 0-12 0c0 6-2.5 7-2.5 7h17S18 15 18 9z" />
-      <path d="M10 20a2 2 0 0 0 4 0" />
     </svg>
   );
 }
@@ -127,14 +99,6 @@ export function IconPhone({ className }: P) {
   return (
     <svg className={className || base} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M5 3h4l2 5-2.5 1.5a12 12 0 0 0 6 6L16 13l5 2v4a2 2 0 0 1-2 2A17 17 0 0 1 3 5a2 2 0 0 1 2-2z" />
-    </svg>
-  );
-}
-
-export function IconEdit({ className }: P) {
-  return (
-    <svg className={className || base} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M17 3l4 4L8 20l-5 1 1-5L17 3z" />
     </svg>
   );
 }

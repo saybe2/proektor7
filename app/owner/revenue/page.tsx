@@ -1,16 +1,13 @@
-import { redirect } from "next/navigation";
 import Link from "next/link";
 import { db } from "@/lib/db";
-import { getCurrentUser } from "@/lib/auth";
+import { requireOwnerPage } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 const PERIODS = { week: 7, month: 30, quarter: 90, year: 365 } as const;
 
 export default async function RevenuePage({ searchParams }: { searchParams: Promise<{ period?: string }> }) {
-  const owner = await getCurrentUser();
-  if (!owner) redirect("/login");
-  if (owner.role !== "OWNER") redirect(owner.role === "ADMIN" ? "/admin" : "/cabinet");
+  await requireOwnerPage();
   const params = await searchParams;
   const period = params.period && params.period in PERIODS ? params.period as keyof typeof PERIODS : "month";
   const since = new Date();

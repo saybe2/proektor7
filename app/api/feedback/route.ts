@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, normalizePhone } from "@/lib/auth";
 import { sendPushToUser } from "@/lib/push";
+import { apiError, parseBody } from "@/lib/api";
 
 const schema = z.object({
   name: z.string().max(60).optional(),
@@ -11,21 +12,23 @@ const schema = z.object({
 });
 
 export async function POST(req: NextRequest) {
-  const parsed = schema.safeParse(await req.json().catch(() => null));
-  if (!parsed.success) {
-    return NextResponse.json({ ok: false, error: "Некорректные данные" }, { status: 400 });
-  }
+  const body = await parseBody(req, schema);
+  if (!body.ok) return body.response;
 
   let user = null;
   try {
     user = await getCurrentUser();
-  } catch {
+  } catch (err) {
+    console.error("[feedback] getCurrentUser failed", err);
     user = null;
   }
 
-  const name = parsed.data.name || user?.name || null;
-  const phone = parsed.data.phone || user?.phone || null;
-  const message = parsed.data.message;
+  const name = body.data.name || user?.name || null;
+  // номер нормализуем: иначе ограничение по частоте обходится сменой формата
+  const phone = body.data.phone
+    ? normalizePhone(body.data.phone) || body.data.phone.trim()
+    : user?.phone || null;
+  const message = body.data.message;
 
   const since = new Date(Date.now() - 60_000);
   const identifiers = [
@@ -38,10 +41,7 @@ export async function POST(req: NextRequest) {
       select: { id: true },
     });
     if (recent) {
-      return NextResponse.json(
-        { ok: false, error: "Слишком часто. Попробуйте через минуту." },
-        { status: 429 }
-      );
+      return apiError("Слишком часто. Попробуйте через минуту.", 429);
     }
   }
 

@@ -48,6 +48,10 @@ export async function sendPushToUser(userId: string, payload: PushPayload) {
       const status = (err as { statusCode?: number }).statusCode;
       if (status === 404 || status === 410) {
         await db.pushSubscription.delete({ where: { id: sub.id } }).catch(() => {});
+      } else {
+        // прочие отказы (протухший VAPID, лимиты) логируем: без этого
+        // «пуши перестали ходить» нечем диагностировать
+        console.error("[push] send failed", status ?? err);
       }
     }
   }

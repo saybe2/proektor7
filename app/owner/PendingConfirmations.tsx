@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { postJson } from "@/lib/client-api";
+import { BONUS } from "@/lib/config";
+import { formatDateTime } from "@/lib/format";
 
 type PendingPurchase = {
   id: string;
@@ -36,14 +39,9 @@ export default function PendingConfirmations({
     setBusyKey(key);
     setError(null);
     try {
-      const res = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      const data = await res.json();
+      const data = await postJson(endpoint, payload);
       if (!data.ok) {
-        setError(data.error || "Ошибка обработки");
+        setError(data.error);
         return;
       }
       router.refresh();
@@ -70,9 +68,7 @@ export default function PendingConfirmations({
                 {p.referralBonus > 0 ? `, рефереру +${p.referralBonus} б.` : ""}
               </div>
               <div className="text-xs text-[#9aa0c0]">
-                {new Date(p.createdAt).toLocaleString("ru-RU", {
-                  day: "numeric", month: "long", hour: "2-digit", minute: "2-digit",
-                })}
+                {formatDateTime(p.createdAt)}
               </div>
             </div>
             <div className="flex gap-2 shrink-0">
@@ -104,11 +100,9 @@ export default function PendingConfirmations({
               <div className="font-semibold text-sm text-brand-dark">
                 Новая регистрация: {w.name} (+{w.phone})
               </div>
-              <div className="text-xs text-[#3c3c6e]">150 приветственных бонусов</div>
+              <div className="text-xs text-[#3c3c6e]">{BONUS.WELCOME} приветственных бонусов</div>
               <div className="text-xs text-[#9aa0c0]">
-                {new Date(w.createdAt).toLocaleString("ru-RU", {
-                  day: "numeric", month: "long", hour: "2-digit", minute: "2-digit",
-                })}
+                {formatDateTime(w.createdAt)}
               </div>
             </div>
             <div className="flex gap-2 shrink-0">

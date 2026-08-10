@@ -3,9 +3,12 @@
 
 /* eslint-disable @typescript-eslint/no-require-imports */
 const { PrismaClient } = require("@prisma/client");
+const { randomInt } = require("node:crypto");
 
 const db = new PrismaClient();
 
+// Дублирует пресеты из lib/rooms.ts: сид запускается как обычный CommonJS-скрипт
+// (node prisma/seed.js в контейнере) и не может импортировать TypeScript-модуль.
 const ROOM_PRESETS = [
   ["Комната 1", "Уютная отдельная комната для спокойного отдыха и встреч небольшой компанией.", 2, 4, 2],
   ["Комната 2", "Компактное пространство с мягкой зоной для игр, разговоров и просмотра кино.", 2, 6, 2],
@@ -35,10 +38,7 @@ const DEFAULT_ROOMS = ROOM_PRESETS.map(([name, description, minCapacity, capacit
 
 function refCode() {
   const chars = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
-  return Array.from(
-    { length: 6 },
-    () => chars[Math.floor(Math.random() * chars.length)]
-  ).join("");
+  return Array.from({ length: 6 }, () => chars[randomInt(0, chars.length)]).join("");
 }
 
 async function main() {

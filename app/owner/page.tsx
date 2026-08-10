@@ -1,7 +1,6 @@
-import { redirect } from "next/navigation";
 import Link from "next/link";
 import { db } from "@/lib/db";
-import { getCurrentUser } from "@/lib/auth";
+import { requireOwnerPage } from "@/lib/auth";
 import LogoutButton from "../cabinet/LogoutButton";
 import BroadcastForm from "./BroadcastForm";
 import PendingConfirmations from "./PendingConfirmations";
@@ -9,9 +8,7 @@ import PendingConfirmations from "./PendingConfirmations";
 export const dynamic = "force-dynamic";
 
 export default async function OwnerPage() {
-  const user = await getCurrentUser();
-  if (!user) redirect("/login");
-  if (user.role !== "OWNER") redirect(user.role === "ADMIN" ? "/admin" : "/cabinet");
+  await requireOwnerPage();
 
   const monthAgo = new Date();
   monthAgo.setDate(monthAgo.getDate() - 30);

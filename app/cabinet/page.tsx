@@ -1,7 +1,8 @@
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
-import { getCurrentUser } from "@/lib/auth";
-import { SITE, BONUS } from "@/lib/config";
+import { getCurrentUser, cabinetPath } from "@/lib/auth";
+import { AUTO_CONFIRM_HOURS, BONUS } from "@/lib/config";
+import { formatDate } from "@/lib/format";
 import RefLinkCard from "./RefLinkCard";
 import LogoutButton from "./LogoutButton";
 
@@ -18,7 +19,7 @@ const TYPE_LABELS: Record<string, string> = {
 export default async function CabinetPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
-  if (user.role !== "CLIENT") redirect(user.role === "OWNER" ? "/owner" : "/admin");
+  if (user.role !== "CLIENT") redirect(cabinetPath(user.role));
 
   const [transactions, pendingTransactions, referralsCount] = await Promise.all([
     db.bonusTransaction.findMany({
@@ -32,8 +33,6 @@ export default async function CabinetPage() {
     }),
     db.user.count({ where: { referredById: user.id } }),
   ]);
-
-  const refLink = `${SITE.URL}/login?ref=${user.refCode}`;
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-12">
@@ -68,9 +67,7 @@ export default async function CabinetPage() {
                   </div>
                   {t.comment && <div className="text-xs text-[#3c3c6e]">{t.comment}</div>}
                   <div className="text-xs text-[#9aa0c0]">
-                    {new Date(t.createdAt).toLocaleDateString("ru-RU", {
-                      day: "numeric", month: "long", year: "numeric",
-                    })}
+                    {formatDate(t.createdAt)}
                   </div>
                 </div>
                 <div className="font-extrabold text-[#9aa0c0]">
@@ -80,13 +77,13 @@ export default async function CabinetPage() {
             ))}
           </div>
           <p className="text-xs text-[#9aa0c0] mt-4">
-            Бонусы появятся на балансе после подтверждения владельцем или автоматически через 18 часов — придёт уведомление.
+            Бонусы появятся на балансе после подтверждения владельцем или автоматически через {AUTO_CONFIRM_HOURS} часов — придёт уведомление.
           </p>
         </div>
       )}
 
       {/* Реферальная ссылка */}
-      <RefLinkCard refLink={refLink} refCode={user.refCode} referralsCount={referralsCount} />
+      <RefLinkCard refCode={user.refCode} referralsCount={referralsCount} />
 
       {/* История */}
       <div className="card p-6 mt-6">
@@ -103,9 +100,7 @@ export default async function CabinetPage() {
                 </div>
                 {t.comment && <div className="text-xs text-[#3c3c6e]">{t.comment}</div>}
                 <div className="text-xs text-[#9aa0c0]">
-                  {new Date(t.createdAt).toLocaleDateString("ru-RU", {
-                    day: "numeric", month: "long", year: "numeric",
-                  })}
+                  {formatDate(t.createdAt)}
                 </div>
               </div>
               <div className={`font-extrabold ${t.amount > 0 ? "text-green-600" : "text-red-500"}`}>

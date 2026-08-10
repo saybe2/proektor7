@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SITE } from "@/lib/config";
+import { telHref } from "@/lib/format";
 
 export default function Footer() {
   return (
@@ -27,7 +28,7 @@ export default function Footer() {
           <p className="text-white/80 text-sm">{SITE.ADDRESS}</p>
           <p className="text-white/80 text-sm mt-1">{SITE.HOURS}</p>
           <p className="text-white/80 text-sm mt-1">
-            <a href={`tel:${SITE.PHONE.replace(/[^+\d]/g, "")}`} className="hover:text-white font-bold">
+            <a href={telHref(SITE.PHONE)} className="hover:text-white font-bold">
               {SITE.PHONE}
             </a>
           </p>

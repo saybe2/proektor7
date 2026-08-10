@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { postJson } from "@/lib/client-api";
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -22,10 +23,19 @@ export default function PushToggle({ alwaysVisible = false }: { alwaysVisible?: 
 
   useEffect(() => {
     if (!supported) return;
-    navigator.serviceWorker.register("/sw.js").then(async (reg) => {
-      const sub = await reg.pushManager.getSubscription();
-      setSubscribed(!!sub);
-    });
+    let active = true;
+    navigator.serviceWorker
+      .register("/sw.js")
+      .then(async (reg) => {
+        const sub = await reg.pushManager.getSubscription();
+        if (active) setSubscribed(Boolean(sub));
+      })
+      .catch(() => {
+        if (active) setError("Не удалось подготовить уведомления в этом браузере.");
+      });
+    return () => {
+      active = false;
+    };
   }, [supported]);
 
   async function toggle() {
@@ -36,11 +46,7 @@ export default function PushToggle({ alwaysVisible = false }: { alwaysVisible?: 
       const existing = await reg.pushManager.getSubscription();
 
       if (existing) {
-        await fetch("/api/push/subscribe", {
-          method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ endpoint: existing.endpoint }),
-        });
+        await postJson("/api/push/subscribe", { endpoint: existing.endpoint }, { method: "DELETE" });
         await existing.unsubscribe();
         setSubscribed(false);
         return;
@@ -62,12 +68,19 @@ export default function PushToggle({ alwaysVisible = false }: { alwaysVisible?: 
         applicationServerKey: urlBase64ToUint8Array(vapid),
       });
       const json = sub.toJSON();
-      await fetch("/api/push/subscribe", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ endpoint: json.endpoint, keys: json.keys }),
+      const saved = await postJson("/api/push/subscribe", {
+        endpoint: json.endpoint,
+        keys: json.keys,
       });
+      if (!saved.ok) {
+        // подписку в браузере не оставляем, иначе она разойдётся с базой
+        await sub.unsubscribe().catch(() => undefined);
+        setError(saved.error);
+        return;
+      }
       setSubscribed(true);
+    } catch {
+      setError("Не удалось изменить настройку уведомлений. Попробуйте ещё раз.");
     } finally {
       setLoading(false);
     }
@@ -101,7 +114,7 @@ export default function PushToggle({ alwaysVisible = false }: { alwaysVisible?: 
       </div>
       <button
         className={subscribed ? "btn-outline !py-2 !px-4 text-sm shrink-0" : "btn-brand !py-2 !px-4 text-sm shrink-0"}
-        onClick={toggle}
+        onClick={() => void toggle()}
         disabled={loading || !supported}
       >
         {subscribed ? "Отключить" : "Включить"}

@@ -121,6 +121,24 @@ export async function recordPurchase(params: {
     : 0;
 
   const result = await db.$transaction(async (tx) => {
+    // Проверку доступных бонусов повторяем внутри транзакции: между чтением
+    // выше и записью баланс мог измениться (параллельный чек, корректировка).
+    if (bonusesToSpend > 0) {
+      const current = await tx.user.findUnique({
+        where: { id: userId },
+        select: { bonusBalance: true },
+      });
+      const pending = await tx.bonusTransaction.aggregate({
+        where: { userId, type: "REDEEM", status: "PENDING" },
+        _sum: { amount: true },
+      });
+      const availableNow =
+        (current?.bonusBalance ?? 0) - Math.abs(pending._sum.amount || 0);
+      if (bonusesToSpend > availableNow) {
+        return { error: `Недостаточно бонусов (доступно ${availableNow})`, purchase: null };
+      }
+    }
+
     const purchase = await tx.purchase.create({
       data: {
         userId,
@@ -173,8 +191,10 @@ export async function recordPurchase(params: {
       });
     }
 
-    return purchase;
+    return { error: null, purchase };
   });
+
+  if (result.error !== null) return { ok: false, error: result.error };
 
   try {
     const owners = await db.user.findMany({
@@ -192,7 +212,7 @@ export async function recordPurchase(params: {
     console.error("[bonus] push to owners failed", err);
   }
 
-  return { ok: true, purchaseId: result.id, cashback, referralBonus };
+  return { ok: true, purchaseId: result.purchase.id, cashback, referralBonus };
 }
 
 export type DecisionResult = { ok: true } | { ok: false; error: string };
@@ -207,23 +227,30 @@ export async function confirmPurchase(purchaseId: string): Promise<DecisionResul
   if (purchase.status !== "PENDING") return { ok: false, error: "Чек уже обработан" };
 
   const now = new Date();
-  await db.$transaction(async (tx) => {
-    await tx.purchase.update({
-      where: { id: purchaseId },
+  // Статус переводим условным апдейтом: если параллельный запрос (владелец
+  // и крон одновременно) уже подтвердил чек, второй ничего не начислит.
+  const applied = await db.$transaction(async (tx) => {
+    const claimed = await tx.purchase.updateMany({
+      where: { id: purchaseId, status: "PENDING" },
       data: { status: "CONFIRMED", confirmedAt: now },
     });
+    if (claimed.count !== 1) return false;
+
     for (const t of purchase.bonusTransactions) {
-      if (t.status !== "PENDING") continue;
-      await tx.bonusTransaction.update({
-        where: { id: t.id },
+      const claimedTransaction = await tx.bonusTransaction.updateMany({
+        where: { id: t.id, status: "PENDING" },
         data: { status: "CONFIRMED", confirmedAt: now },
       });
+      if (claimedTransaction.count !== 1) continue;
       await tx.user.update({
         where: { id: t.userId },
         data: { bonusBalance: { increment: t.amount } },
       });
     }
+    return true;
   });
+
+  if (!applied) return { ok: false, error: "Чек уже обработан" };
 
   const redeemed = purchase.bonusTransactions
     .filter((t) => t.type === "REDEEM")
@@ -277,8 +304,8 @@ export async function rejectPurchase(purchaseId: string): Promise<DecisionResult
   if (purchase.status !== "PENDING") return { ok: false, error: "Чек уже обработан" };
 
   await db.$transaction(async (tx) => {
-    await tx.purchase.update({
-      where: { id: purchaseId },
+    await tx.purchase.updateMany({
+      where: { id: purchaseId, status: "PENDING" },
       data: { status: "REJECTED" },
     });
     await tx.bonusTransaction.updateMany({
@@ -307,16 +334,20 @@ export async function confirmWelcome(userId: string): Promise<DecisionResult> {
   });
   if (!welcome) return { ok: false, error: "Заявка не найдена" };
 
-  await db.$transaction(async (tx) => {
-    await tx.bonusTransaction.update({
-      where: { id: welcome.id },
+  const applied = await db.$transaction(async (tx) => {
+    const claimed = await tx.bonusTransaction.updateMany({
+      where: { id: welcome.id, status: "PENDING" },
       data: { status: "CONFIRMED", confirmedAt: new Date() },
     });
+    if (claimed.count !== 1) return false;
     await tx.user.update({
       where: { id: userId },
       data: { bonusBalance: { increment: welcome.amount } },
     });
+    return true;
   });
+
+  if (!applied) return { ok: false, error: "Заявка уже обработана" };
 
   try {
     await sendPushToUser(userId, {
@@ -341,18 +372,28 @@ export async function confirmOverdue(): Promise<{ purchases: number; welcomes: n
   });
   let purchasesConfirmed = 0;
   for (const p of purchases) {
-    const result = await confirmPurchase(p.id);
-    if (result.ok) purchasesConfirmed++;
+    try {
+      const result = await confirmPurchase(p.id);
+      if (result.ok) purchasesConfirmed++;
+    } catch (err) {
+      // одна проблемная запись не должна останавливать весь прогон крона
+      console.error("[bonus] auto-confirm purchase failed", p.id, err);
+    }
   }
 
   const welcomes = await db.bonusTransaction.findMany({
     where: { type: "WELCOME", status: "PENDING", createdAt: { lt: cutoff } },
     select: { userId: true },
+    distinct: ["userId"],
   });
   let welcomesConfirmed = 0;
   for (const w of welcomes) {
-    const result = await confirmWelcome(w.userId);
-    if (result.ok) welcomesConfirmed++;
+    try {
+      const result = await confirmWelcome(w.userId);
+      if (result.ok) welcomesConfirmed++;
+    } catch (err) {
+      console.error("[bonus] auto-confirm welcome failed", w.userId, err);
+    }
   }
 
   return { purchases: purchasesConfirmed, welcomes: welcomesConfirmed };
@@ -365,10 +406,11 @@ export async function rejectWelcome(userId: string): Promise<DecisionResult> {
   });
   if (!welcome) return { ok: false, error: "Заявка не найдена" };
 
-  await db.bonusTransaction.update({
-    where: { id: welcome.id },
+  const rejected = await db.bonusTransaction.updateMany({
+    where: { id: welcome.id, status: "PENDING" },
     data: { status: "REJECTED" },
   });
+  if (rejected.count !== 1) return { ok: false, error: "Заявка уже обработана" };
 
   try {
     await sendPushToUser(userId, {

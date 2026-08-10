@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { postJson } from "@/lib/client-api";
 
 export default function PushOneForm({ userId }: { userId: string }) {
   const [title, setTitle] = useState("");
@@ -12,13 +13,12 @@ export default function PushOneForm({ userId }: { userId: string }) {
     setLoading(true);
     setResult("");
     try {
-      const res = await fetch("/api/owner/push-one", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, title, body }),
+      const data = await postJson<{ sent: number }>("/api/owner/push-one", {
+        userId,
+        title,
+        body,
       });
-      const data = await res.json();
-      setResult(data.ok ? `Отправлено на ${data.sent} устройств` : data.error || "Ошибка");
+      setResult(data.ok ? `Отправлено на ${data.sent} устройств` : data.error);
       if (data.ok) {
         setTitle("");
         setBody("");
@@ -54,7 +54,7 @@ export default function PushOneForm({ userId }: { userId: string }) {
         <button
           className="btn-brand"
           disabled={loading || !title || !body}
-          onClick={send}
+          onClick={() => void send()}
         >
           {loading ? "Отправляем..." : "Отправить уведомление"}
         </button>

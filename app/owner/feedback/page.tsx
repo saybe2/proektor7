@@ -1,15 +1,12 @@
-import { redirect } from "next/navigation";
 import Link from "next/link";
 import { db } from "@/lib/db";
-import { getCurrentUser } from "@/lib/auth";
+import { requireOwnerPage } from "@/lib/auth";
 import FeedbackList from "./FeedbackList";
 
 export const dynamic = "force-dynamic";
 
 export default async function OwnerFeedbackPage() {
-  const owner = await getCurrentUser();
-  if (!owner) redirect("/login");
-  if (owner.role !== "OWNER") redirect(owner.role === "ADMIN" ? "/admin" : "/cabinet");
+  await requireOwnerPage();
 
   const feedbacks = await db.feedback.findMany({
     orderBy: { createdAt: "desc" },

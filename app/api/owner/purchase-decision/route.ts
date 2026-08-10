@@ -1,29 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { requireOwner } from "@/lib/auth";
+import { guardOwner, parseBody } from "@/lib/api";
 import { confirmPurchase, rejectPurchase } from "@/lib/bonus";
 
 const schema = z.object({
-  purchaseId: z.string(),
+  purchaseId: z.string().min(1).max(40),
   action: z.enum(["confirm", "reject"]),
 });
 
 export async function POST(req: NextRequest) {
-  try {
-    await requireOwner();
-  } catch {
-    return NextResponse.json({ ok: false, error: "Нет доступа" }, { status: 403 });
-  }
+  const access = await guardOwner();
+  if (!access.ok) return access.response;
 
-  const parsed = schema.safeParse(await req.json().catch(() => null));
-  if (!parsed.success) {
-    return NextResponse.json({ ok: false, error: "Некорректные данные" }, { status: 400 });
-  }
+  const body = await parseBody(req, schema);
+  if (!body.ok) return body.response;
 
   const result =
-    parsed.data.action === "confirm"
-      ? await confirmPurchase(parsed.data.purchaseId)
-      : await rejectPurchase(parsed.data.purchaseId);
+    body.data.action === "confirm"
+      ? await confirmPurchase(body.data.purchaseId)
+      : await rejectPurchase(body.data.purchaseId);
 
   return NextResponse.json(result, { status: result.ok ? 200 : 400 });
 }

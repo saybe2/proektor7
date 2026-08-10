@@ -1,15 +1,13 @@
-import { redirect } from "next/navigation";
 import Link from "next/link";
 import { db } from "@/lib/db";
-import { getCurrentUser } from "@/lib/auth";
+import { requireOwnerPage } from "@/lib/auth";
+import { formatDate, telHref } from "@/lib/format";
 import PushOneForm from "./PushOneForm";
 
 export const dynamic = "force-dynamic";
 
 export default async function OwnerClientsPage({ searchParams }: { searchParams: Promise<{ client?: string }> }) {
-  const owner = await getCurrentUser();
-  if (!owner) redirect("/login");
-  if (owner.role !== "OWNER") redirect(owner.role === "ADMIN" ? "/admin" : "/cabinet");
+  await requireOwnerPage();
 
   const { client: selectedId } = await searchParams;
   const clients = await db.user.findMany({
@@ -37,7 +35,7 @@ export default async function OwnerClientsPage({ searchParams }: { searchParams:
       {selected && (
         <section className="card p-5 md:p-7 mb-8">
           <div className="flex flex-wrap justify-between gap-4 border-b-2 border-[#111118] pb-5 mb-5">
-            <div><h2 className="h-display text-2xl">{selected.name || "Без имени"}</h2><a className="font-bold text-brand" href={`tel:+${selected.phone}`}>+{selected.phone}</a></div>
+            <div><h2 className="h-display text-2xl">{selected.name || "Без имени"}</h2><a className="font-bold text-brand" href={telHref(`+${selected.phone}`)}>+{selected.phone}</a></div>
             <div className="text-right"><div className="text-3xl font-black text-brand">{selected.bonusBalance}</div><div className="text-xs font-bold">бонусов</div></div>
           </div>
           <div className="grid md:grid-cols-2 gap-6">
@@ -56,7 +54,7 @@ export default async function OwnerClientsPage({ searchParams }: { searchParams:
             </div>
           </div>
           <div className="mt-6 text-sm"><b>Приглашено друзей:</b> {selected.referrals.length}{selected.referredBy && <> · <b>Пригласил:</b> {selected.referredBy.name || `+${selected.referredBy.phone}`}</>}</div>
-          <div className="mt-2 text-sm"><b>День рождения:</b> {selected.birthDate ? new Date(selected.birthDate).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" }) : "не указан"}</div>
+          <div className="mt-2 text-sm"><b>День рождения:</b> {selected.birthDate ? formatDate(selected.birthDate) : "не указан"}</div>
           <PushOneForm userId={selected.id} />
         </section>
       )}

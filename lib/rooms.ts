@@ -21,6 +21,18 @@ const ROOM_PRESETS: RoomPreset[] = [
   { name: "Комната 10", description: "Отдельная комната для встреч, игр и праздников без посторонних.", minCapacity: 2, capacity: 8, imageCount: 3 },
 ];
 
+/** Разбор JSON-массива путей к фото из поля Room.images */
+export function parseImages(value: string): string[] {
+  try {
+    const images: unknown = JSON.parse(value);
+    return Array.isArray(images)
+      ? images.filter((item): item is string => typeof item === "string")
+      : [];
+  } catch {
+    return [];
+  }
+}
+
 function roomImages(roomNumber: number, imageCount: number) {
   return Array.from(
     { length: imageCount },

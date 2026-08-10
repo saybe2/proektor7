@@ -1,14 +1,20 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { db } from "./db";
+import { cabinetPath } from "./routes";
 import type { Role } from "@prisma/client";
+
+export { cabinetPath };
 
 function getSecret() {
   const secret = process.env.AUTH_SECRET;
-  if (process.env.NODE_ENV === "production" && (!secret || secret.length < 32 || secret.includes("ЗАМЕНИТЬ"))) {
-    throw new Error("AUTH_SECRET must contain at least 32 characters in production");
+  // Секрет проверяем всегда, а не только при NODE_ENV=production: иначе
+  // прод-сборка с неверным NODE_ENV подписывала бы сессии публичной строкой.
+  if (!secret || secret.length < 32 || secret.includes("ЗАМЕНИТЬ")) {
+    throw new Error("AUTH_SECRET must contain at least 32 characters");
   }
-  return new TextEncoder().encode(secret || "development-only-secret-change-before-production");
+  return new TextEncoder().encode(secret);
 }
 const COOKIE_NAME = "proektor_session";
 const SESSION_DAYS = 90;
@@ -91,6 +97,18 @@ export function normalizePhone(raw: string): string | null {
   let p = digits;
   if (p.length === 10 && p.startsWith("9")) p = "7" + p;
   if (p.length === 11 && p.startsWith("8")) p = "7" + p.slice(1);
-  if (p.length === 11 && p.startsWith("7")) return p;
+  // только мобильные 79XXXXXXXXX: на городские номера flash-call не приходит
+  if (p.length === 11 && p.startsWith("79")) return p;
   return null;
+}
+
+/**
+ * Гвард серверных страниц владельца: неавторизованных отправляет на вход,
+ * остальных — в их собственный раздел.
+ */
+export async function requireOwnerPage() {
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
+  if (user.role !== "OWNER") redirect(cabinetPath(user.role));
+  return user;
 }

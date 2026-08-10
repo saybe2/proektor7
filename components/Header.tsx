@@ -1,6 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import MobileMenu from "@/components/MobileMenu";
+import { cabinetPath } from "@/lib/routes";
+import { BONUS } from "@/lib/config";
 
 const NAV = [
   { href: "/rooms", label: "Комнаты" },
@@ -15,8 +17,7 @@ type Props = {
 };
 
 export default function Header({ user }: Props) {
-  const cabinetHref =
-    user?.role === "OWNER" ? "/owner" : user?.role === "ADMIN" ? "/admin" : "/cabinet";
+  const cabinetHref = cabinetPath(user?.role);
 
   return (
     <header className="sticky top-0 z-50 bg-[#f5f1e8]/95 backdrop-blur border-b-2 border-[#111118]">
@@ -63,7 +64,7 @@ export default function Header({ user }: Props) {
             </>
           ) : (
             <Link href="/login" className="btn-brand !min-h-0 !py-2 !px-5 text-sm !shadow-[3px_3px_0_#111118]">
-              150 бонусов
+              {BONUS.WELCOME} бонусов
             </Link>
           )}
         </div>

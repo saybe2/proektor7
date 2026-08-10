@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { postJson } from "@/lib/client-api";
 
 export default function BroadcastForm() {
   const [title, setTitle] = useState("");
@@ -12,13 +13,8 @@ export default function BroadcastForm() {
     setLoading(true);
     setResult("");
     try {
-      const res = await fetch("/api/owner/broadcast", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, body }),
-      });
-      const data = await res.json();
-      setResult(data.ok ? `Отправлено на ${data.sent} устройств` : data.error || "Ошибка");
+      const data = await postJson<{ sent: number }>("/api/owner/broadcast", { title, body });
+      setResult(data.ok ? `Отправлено на ${data.sent} устройств` : data.error);
       if (data.ok) {
         setTitle("");
         setBody("");
@@ -56,7 +52,7 @@ export default function BroadcastForm() {
         <button
           className="btn-brand"
           disabled={loading || !title || !body}
-          onClick={send}
+          onClick={() => void send()}
         >
           {loading ? "Отправляем..." : "Отправить всем"}
         </button>

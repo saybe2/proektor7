@@ -2,17 +2,16 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { BONUS, BIRTHDAY_PUSH } from "@/lib/config";
 import { IconGift, IconPercent, IconUsers, IconCake } from "@/components/icons";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, cabinetPath } from "@/lib/auth";
 
 export const metadata: Metadata = {
   title: "Бонусная программа и акции",
-  description:
-    "150 бонусов за регистрацию, кэшбэк 1%, 3% от покупок друга, скидка 20% на время в честь дня рождения. Бонусная программа тайм-кафе Proектор.",
+  description: `${BONUS.WELCOME} бонусов за регистрацию, кэшбэк ${BONUS.CASHBACK_PERCENT}%, ${BONUS.REFERRAL_PERCENT}% от покупок друга, скидка ${BIRTHDAY_PUSH.DISCOUNT_PERCENT}% на время в честь дня рождения. Бонусная программа тайм-кафе Proектор.`,
 };
 
 export default async function BonusPage() {
   const user = await getCurrentUser();
-  const cabinetHref = user?.role === "OWNER" ? "/owner" : user?.role === "ADMIN" ? "/admin" : "/cabinet";
+  const cabinetHref = cabinetPath(user?.role);
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 md:py-12">
       <h1 className="h-display text-2xl sm:text-3xl md:text-4xl text-brand-dark text-center mb-3">

@@ -41,6 +41,9 @@ model User {
   pushSubscriptions PushSubscription[]
   notifications     NotificationLog[]
   feedbacks         Feedback[]
+
+  @@index([role])
+  @@index([referredById])
 }
 
 // Согласие на получение рекламных уведомлений (отдельно от политики ПДн)
@@ -76,6 +79,8 @@ model Feedback {
   createdAt DateTime @default(now())
 
   @@index([createdAt])
+  @@index([userId])
+  @@index([phone])
 }
 
 model PrivacyConsent {
@@ -108,6 +113,10 @@ model Purchase {
   createdAt   DateTime @default(now())
 
   bonusTransactions BonusTransaction[]
+
+  @@index([status, createdAt])
+  @@index([createdAt])
+  @@index([userId])
 }
 
 enum BonusType {
@@ -132,6 +141,10 @@ model BonusTransaction {
   createdAt  DateTime  @default(now())
 
   @@index([status])
+  @@index([userId, status])
+  @@index([userId, createdAt])
+  @@index([purchaseId])
+  @@index([type, status, createdAt])
 }
 
 model PushSubscription {
@@ -142,6 +155,8 @@ model PushSubscription {
   p256dh    String
   auth      String
   createdAt DateTime @default(now())
+
+  @@index([userId])
 }
 
 // Код подтверждения (flash call / telegram / sms)

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { postJson } from "@/lib/client-api";
 
 export default function ProfileForm({ initialName, initialBirthDate, phone }: { initialName: string; initialBirthDate: string; phone: string }) {
   const [name, setName] = useState(initialName);
@@ -13,13 +14,12 @@ export default function ProfileForm({ initialName, initialBirthDate, phone }: { 
     setBusy(true);
     setMessage(null);
     try {
-      const response = await fetch("/api/profile", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, birthDate: birthDate || null }),
-      });
-      const data = await response.json();
-      setMessage(data.ok ? { ok: true, text: "Данные сохранены" } : { ok: false, text: data.error || "Не удалось сохранить" });
+      const data = await postJson(
+        "/api/profile",
+        { name, birthDate: birthDate || null },
+        { method: "PATCH" }
+      );
+      setMessage(data.ok ? { ok: true, text: "Данные сохранены" } : { ok: false, text: data.error });
     } finally {
       setBusy(false);
     }

@@ -1,24 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { requireOwner } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { apiError, guardOwner, isRecordNotFound, parseBody } from "@/lib/api";
 
 const schema = z.object({
-  id: z.string(),
+  id: z.string().min(1).max(40),
 });
 
 export async function POST(req: NextRequest) {
+  const access = await guardOwner();
+  if (!access.ok) return access.response;
+
+  const body = await parseBody(req, schema);
+  if (!body.ok) return body.response;
+
   try {
-    await requireOwner();
-  } catch {
-    return NextResponse.json({ ok: false, error: "Нет доступа" }, { status: 403 });
+    await db.feedback.update({ where: { id: body.data.id }, data: { isRead: true } });
+  } catch (error) {
+    if (isRecordNotFound(error)) return apiError("Сообщение не найдено", 404);
+    throw error;
   }
-
-  const parsed = schema.safeParse(await req.json().catch(() => null));
-  if (!parsed.success) {
-    return NextResponse.json({ ok: false, error: "Некорректные данные" }, { status: 400 });
-  }
-
-  await db.feedback.update({ where: { id: parsed.data.id }, data: { isRead: true } });
   return NextResponse.json({ ok: true });
 }

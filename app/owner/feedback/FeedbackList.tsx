@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { postJson } from "@/lib/client-api";
+import { formatDateTime, telHref } from "@/lib/format";
 
 type FeedbackItem = {
   id: string;
@@ -15,15 +17,17 @@ type FeedbackItem = {
 export default function FeedbackList({ items }: { items: FeedbackItem[] }) {
   const router = useRouter();
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [error, setError] = useState("");
 
   async function markRead(id: string) {
     setLoadingId(id);
+    setError("");
     try {
-      await fetch("/api/owner/feedback-read", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id }),
-      });
+      const data = await postJson("/api/owner/feedback-read", { id });
+      if (!data.ok) {
+        setError(data.error);
+        return;
+      }
       router.refresh();
     } finally {
       setLoadingId(null);
@@ -44,7 +48,7 @@ export default function FeedbackList({ items }: { items: FeedbackItem[] }) {
               {item.phone && (
                 <>
                   {" · "}
-                  <a className="font-bold text-brand" href={`tel:${item.phone.replace(/[^+\d]/g, "")}`}>
+                  <a className="font-bold text-brand" href={telHref(item.phone)}>
                     {item.phone}
                   </a>
                 </>
@@ -55,7 +59,7 @@ export default function FeedbackList({ items }: { items: FeedbackItem[] }) {
                 <span className="bg-brand text-white text-xs font-black px-2 py-0.5">Новое</span>
               )}
               <span className="text-xs text-[#66656f]">
-                {new Date(item.createdAt).toLocaleString("ru-RU", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" })}
+                {formatDateTime(item.createdAt)}
               </span>
             </div>
           </div>
@@ -64,13 +68,14 @@ export default function FeedbackList({ items }: { items: FeedbackItem[] }) {
             <button
               className="btn-outline mt-4 text-sm"
               disabled={loadingId === item.id}
-              onClick={() => markRead(item.id)}
+              onClick={() => void markRead(item.id)}
             >
               {loadingId === item.id ? "Сохраняем..." : "Прочитано"}
             </button>
           )}
         </div>
       ))}
+      {error && <p className="text-sm font-bold text-red-500">{error}</p>}
     </div>
   );
 }

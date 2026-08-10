@@ -2,8 +2,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { BONUS, PRICES, SITE } from "@/lib/config";
-import { DEFAULT_ROOMS } from "@/lib/rooms";
-import { getCurrentUser } from "@/lib/auth";
+import { DEFAULT_ROOMS, parseImages } from "@/lib/rooms";
+import { cabinetPath, getCurrentUser } from "@/lib/auth";
+import { telHref } from "@/lib/format";
 import BookingActions from "@/components/BookingActions";
 import {
   IconClock,
@@ -17,29 +18,20 @@ import {
 
 export const dynamic = "force-dynamic";
 
-function parseImages(value: string) {
-  try {
-    const images: unknown = JSON.parse(value);
-    return Array.isArray(images) ? images.filter((item): item is string => typeof item === "string") : [];
-  } catch {
-    return [];
-  }
-}
-
 const SERVICES = [
   { Icon: IconProjector, number: "01", title: "Своя комната", text: "Большой экран, приставки и диваны только для вашей компании.", href: "/rooms" },
-  { Icon: IconMic, number: "02", title: "Караоке", text: "Пойте без очереди и посторонних. Оплата — 500 рублей за час.", href: "/karaoke" },
+  { Icon: IconMic, number: "02", title: "Караоке", text: `Пойте без очереди и посторонних. Оплата — ${PRICES.KARAOKE_PER_HOUR} рублей за час.`, href: "/karaoke" },
   { Icon: IconDice, number: "03", title: "Настольные игры", text: "Игры для двоих и больших компаний уже входят в стоимость времени.", href: "/games" },
 ];
 
 export default async function HomePage() {
   const currentUser = await getCurrentUser();
-  const cabinetHref = currentUser?.role === "OWNER" ? "/owner" : currentUser?.role === "ADMIN" ? "/admin" : "/cabinet";
+  const cabinetHref = cabinetPath(currentUser?.role);
   const databaseRooms = await db.room.findMany({ where: { active: true }, orderBy: { sort: "asc" }, take: 3 });
   const rooms = databaseRooms.some((room) => parseImages(room.images).length > 0)
     ? databaseRooms
     : DEFAULT_ROOMS.slice(0, 3);
-  const ticker = "КОМНАТЫ 250 ₽/ЧАС С ЧЕЛОВЕКА · ОБЩИЙ ЗАЛ 150 ₽/ЧАС С ЧЕЛОВЕКА · КАРАОКЕ 500 ₽/ЧАС · ";
+  const ticker = `КОМНАТЫ ${PRICES.ROOM_PER_PERSON} ₽/ЧАС С ЧЕЛОВЕКА · ОБЩИЙ ЗАЛ ${PRICES.HALL_PER_PERSON} ₽/ЧАС С ЧЕЛОВЕКА · КАРАОКЕ ${PRICES.KARAOKE_PER_HOUR} ₽/ЧАС · `;
 
   return (
     <>
@@ -53,8 +45,8 @@ export default async function HomePage() {
             description: SITE.DESCRIPTION,
             url: SITE.URL,
             telephone: SITE.PHONE,
-            address: { "@type": "PostalAddress", addressLocality: SITE.CITY, streetAddress: "просп. Мира, 34Б" },
-            openingHours: ["Su-Th 17:00-02:00", "Fr-Sa 17:00-04:00"],
+            address: { "@type": "PostalAddress", addressLocality: SITE.CITY, streetAddress: SITE.STREET_ADDRESS },
+            openingHours: SITE.OPENING_HOURS,
             image: `${SITE.URL}/img/logo.jpg`,
             priceRange: "₽₽",
           }),
@@ -76,7 +68,7 @@ export default async function HomePage() {
             <div className="mt-8 flex flex-col sm:flex-row gap-3">
               <Link href="/rooms" className="btn-brand">Посмотреть комнаты</Link>
               <div className="sm:min-w-44 [&>div]:!mt-0"><BookingActions label="Написать" /></div>
-              <a href={`tel:${SITE.PHONE.replace(/[^+\d]/g, "")}`} className="btn-outline">
+              <a href={telHref(SITE.PHONE)} className="btn-outline">
                 <IconPhone className="w-5 h-5" /> {SITE.PHONE}
               </a>
             </div>

@@ -1,6 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { getJson, postJson } from "@/lib/client-api";
+import { parseImages } from "@/lib/rooms";
+import { PRICES } from "@/lib/config";
 
 type Entity = "room" | "menu" | "game";
 
@@ -48,46 +51,52 @@ export default function ContentEditor() {
 function useItems<T>(entity: Entity) {
   const [items, setItems] = useState<T[]>([]);
   const reload = useCallback(async () => {
-    const res = await fetch(`/api/owner/content?entity=${entity}`);
-    const data = await res.json();
+    const data = await getJson<{ items: T[] }>(`/api/owner/content?entity=${entity}`);
     if (data.ok) setItems(data.items);
   }, [entity]);
   useEffect(() => {
     let active = true;
-    fetch(`/api/owner/content?entity=${entity}`)
-      .then((res) => res.json())
-      .then((data) => { if (active && data.ok) setItems(data.items); })
-      .catch(() => undefined);
+    void getJson<{ items: T[] }>(`/api/owner/content?entity=${entity}`).then((data) => {
+      if (active && data.ok) setItems(data.items);
+    });
     return () => { active = false; };
   }, [entity]);
   return { items, reload };
 }
 
 async function saveItem(entity: Entity, data: unknown, id?: string) {
-  const res = await fetch(`/api/owner/content?entity=${entity}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ id, data }),
-  });
-  return res.json();
+  return postJson(`/api/owner/content?entity=${entity}`, { id, data });
 }
 
 async function deleteItem(entity: Entity, id: string) {
   if (!confirm("Удалить?")) return false;
-  await fetch(`/api/owner/content?entity=${entity}&id=${id}`, { method: "DELETE" });
+  const result = await postJson(
+    `/api/owner/content?entity=${entity}&id=${id}`,
+    undefined,
+    { method: "DELETE" }
+  );
+  if (!result.ok) {
+    alert(result.error);
+    return false;
+  }
   return true;
 }
 
 async function uploadPhoto(file: File): Promise<string | null> {
   const fd = new FormData();
   fd.append("file", file);
-  const res = await fetch("/api/owner/upload", { method: "POST", body: fd });
-  const data = await res.json();
-  if (!data.ok) {
-    alert(data.error || "Ошибка загрузки");
+  try {
+    const res = await fetch("/api/owner/upload", { method: "POST", body: fd });
+    const data = await res.json().catch(() => null);
+    if (!data?.ok) {
+      alert(data?.error || "Не удалось загрузить фотографию");
+      return null;
+    }
+    return data.url as string;
+  } catch {
+    alert("Ошибка сети при загрузке фотографии");
     return null;
   }
-  return data.url;
 }
 
 /* ==================== КОМНАТЫ ==================== */
@@ -99,8 +108,8 @@ function RoomsTab() {
   const [busy, setBusy] = useState(false);
 
   function startEdit(room?: Room) {
-    setEditing(room || { name: "", description: "", minCapacity: 2, capacity: 4, price: 250, sort: 0, active: true });
-    setImages(room ? JSON.parse(room.images) : []);
+    setEditing(room || { name: "", description: "", minCapacity: 2, capacity: 4, price: PRICES.ROOM_PER_PERSON, sort: 0, active: true });
+    setImages(room ? parseImages(room.images) : []);
   }
 
   async function save() {
@@ -165,6 +174,8 @@ function RoomsTab() {
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={src} alt="" className="h-24 w-36 object-cover rounded-lg" />
                 <button
+                  type="button"
+                  aria-label="Удалить фотографию"
                   className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 text-xs font-bold"
                   onClick={() => setImages(images.filter((_, j) => j !== i))}
                 >x</button>
@@ -213,7 +224,7 @@ function RoomsTab() {
               {room.name} {!room.active && <span className="text-xs text-red-500">(скрыта)</span>}
             </div>
             <div className="text-sm text-[#3c3c6e]">
-              {room.price} ₽/час с чел. · от {room.minCapacity} до {room.capacity} чел · фото: {JSON.parse(room.images).length}
+              {room.price} ₽/час с чел. · от {room.minCapacity} до {room.capacity} чел · фото: {parseImages(room.images).length}
             </div>
           </div>
           <div className="flex gap-2 shrink-0">

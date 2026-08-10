@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { requireOwner } from "@/lib/auth";
+import { guardOwner, parseBody } from "@/lib/api";
 import { sendPushToAll } from "@/lib/push";
 
 const schema = z.object({
@@ -9,17 +9,12 @@ const schema = z.object({
 });
 
 export async function POST(req: NextRequest) {
-  try {
-    await requireOwner();
-  } catch {
-    return NextResponse.json({ ok: false, error: "Нет доступа" }, { status: 403 });
-  }
+  const access = await guardOwner();
+  if (!access.ok) return access.response;
 
-  const parsed = schema.safeParse(await req.json().catch(() => null));
-  if (!parsed.success) {
-    return NextResponse.json({ ok: false, error: "Некорректные данные" }, { status: 400 });
-  }
+  const body = await parseBody(req, schema);
+  if (!body.ok) return body.response;
 
-  const { sent } = await sendPushToAll({ ...parsed.data, url: "/" });
+  const { sent } = await sendPushToAll({ ...body.data, url: "/" });
   return NextResponse.json({ ok: true, sent });
 }

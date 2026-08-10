@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PRICES, SITE } from "@/lib/config";
+import { telHref } from "@/lib/format";
 import { IconMusic, IconVolume, IconSofa, IconClock, IconPhone } from "@/components/icons";
 
 export const metadata: Metadata = {
@@ -58,7 +59,7 @@ export default function KaraokePage() {
 
       <div className="text-center mt-8 md:mt-10 flex flex-col sm:flex-row gap-3 justify-center">
         <Link href="/rooms" className="btn-brand">Выбрать комнату</Link>
-        <a href={`tel:${SITE.PHONE.replace(/[^+\d]/g, "")}`} className="btn-outline">
+        <a href={telHref(SITE.PHONE)} className="btn-outline">
           <IconPhone className="w-4 h-4" />
           Позвонить
         </a>
