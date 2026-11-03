@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
   });
 
   try {
-    const owners = await db.user.findMany({ where: { role: "OWNER" }, select: { id: true } });
+    const owners = await db.user.findMany({ where: { role: { in: ["OWNER", "DEVELOPER"] } }, select: { id: true } });
     for (const owner of owners) {
       try {
         await sendPushToUser(owner.id, {

@@ -297,7 +297,7 @@ export async function recordPurchase(params: {
 
   try {
     const owners = await db.user.findMany({
-      where: { role: "OWNER" },
+      where: { role: { in: ["OWNER", "DEVELOPER"] } },
       select: { id: true },
     });
     for (const owner of owners) {

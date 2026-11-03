@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { db } from "./db";
 import { cabinetPath } from "./routes";
 import type { Role } from "@prisma/client";
+import { isOwnerRole, isStaffRole } from "./roles";
 
 export { cabinetPath };
 
@@ -77,7 +78,7 @@ export async function getCurrentUser() {
 /** Требует роль ADMIN или OWNER, иначе кидает ошибку */
 export async function requireStaff() {
   const user = await getCurrentUser();
-  if (!user || (user.role !== "ADMIN" && user.role !== "OWNER")) {
+  if (!user || !isStaffRole(user.role)) {
     throw new Error("FORBIDDEN");
   }
   return user;
@@ -85,7 +86,7 @@ export async function requireStaff() {
 
 export async function requireOwner() {
   const user = await getCurrentUser();
-  if (!user || user.role !== "OWNER") {
+  if (!user || !isOwnerRole(user.role)) {
     throw new Error("FORBIDDEN");
   }
   return user;
@@ -109,6 +110,19 @@ export function normalizePhone(raw: string): string | null {
 export async function requireOwnerPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
-  if (user.role !== "OWNER") redirect(cabinetPath(user.role));
+  if (!isOwnerRole(user.role)) redirect(cabinetPath(user.role));
+  return user;
+}
+
+export async function requireDeveloper() {
+  const user = await getCurrentUser();
+  if (!user || user.role !== "DEVELOPER") throw new Error("FORBIDDEN");
+  return user;
+}
+
+export async function requireDeveloperPage() {
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
+  if (user.role !== "DEVELOPER") redirect(cabinetPath(user.role));
   return user;
 }

@@ -10,7 +10,9 @@ const schema = z.object({
   bonusesToSpend: z.number().int().min(0).max(BONUS.MAX_CHECK).default(0),
 });
 
-export async function POST(req: NextRequest) {
+import { withAudit } from "@/lib/audit";
+export const POST = withAudit(handler);
+async function handler(req: NextRequest) {
   const access = await guardStaff();
   if (!access.ok) return access.response;
 

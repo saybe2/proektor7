@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { apiError, guardStaff } from "@/lib/api";
+import { isOwnerRole } from "@/lib/roles";
 
 export async function GET(req: NextRequest) {
   const access = await guardStaff();
   if (!access.ok) return access.response;
-  const isOwner = access.user.role === "OWNER";
+  const isOwner = isOwnerRole(access.user.role);
 
   const q = req.nextUrl.searchParams.get("q")?.trim().slice(0, 60) || "";
   if (q.length < 2) {

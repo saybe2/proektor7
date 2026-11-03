@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import { getCurrentUser } from "@/lib/auth";
 import MobileDock from "@/components/MobileDock";
 import SplashScreen from "@/components/SplashScreen";
+import SiteAnnouncement from "@/components/SiteAnnouncement";
 
 const manrope = Manrope({
   variable: "--font-manrope",
@@ -79,6 +80,7 @@ export default async function RootLayout({
         <Header
           user={user ? { name: user.name, role: user.role, bonusBalance: user.bonusBalance } : null}
         />
+        <SiteAnnouncement />
         <main className="flex-1">{children}</main>
         <Footer />
         <MobileDock />

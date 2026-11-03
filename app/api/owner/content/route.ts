@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { apiError, guardOwner, isRecordNotFound } from "@/lib/api";
+import { withAudit } from "@/lib/audit";
 
 // Единый CRUD для контента: комнаты / меню / игры
 
@@ -57,7 +58,7 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ ok: true, items });
 }
 
-export async function POST(req: NextRequest) {
+async function postContent(req: NextRequest) {
   const access = await guardOwner();
   if (!access.ok) return access.response;
 
@@ -102,7 +103,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-export async function DELETE(req: NextRequest) {
+async function deleteContent(req: NextRequest) {
   const access = await guardOwner();
   if (!access.ok) return access.response;
 
@@ -121,3 +122,5 @@ export async function DELETE(req: NextRequest) {
 
   return NextResponse.json({ ok: true });
 }
+export const POST = withAudit(postContent);
+export const DELETE = withAudit(deleteContent);

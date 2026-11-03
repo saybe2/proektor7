@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createHash, timingSafeEqual } from "node:crypto";
 import type { z } from "zod";
-import { requireOwner, requireStaff } from "./auth";
+import { requireOwner, requireStaff, requireDeveloper } from "./auth";
 
 /** Единый формат ответа с ошибкой для всех роутов */
 export function apiError(error: string, status: number) {
@@ -33,6 +33,10 @@ export function guardOwner() {
 
 export function guardStaff() {
   return guard(requireStaff, "requireStaff");
+}
+
+export function guardDeveloper() {
+  return guard(requireDeveloper, "requireDeveloper");
 }
 
 /** Разбор JSON-тела с валидацией схемой */

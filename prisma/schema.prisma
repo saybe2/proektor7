@@ -14,6 +14,24 @@ enum Role {
   CLIENT
   ADMIN
   OWNER
+  DEVELOPER
+}
+
+model AuditLog {
+  id String @id @default(cuid())
+  actorId String?
+  action String
+  target String
+  status Int
+  detail String @default("")
+  createdAt DateTime @default(now())
+  @@index([createdAt])
+}
+
+model SiteSetting {
+  key String @id
+  value String
+  updatedAt DateTime @updatedAt
 }
 
 model User {

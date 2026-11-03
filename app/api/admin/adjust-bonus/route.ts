@@ -14,7 +14,9 @@ const schema = z.object({
   comment: z.string().max(200).optional(),
 });
 
-export async function POST(req: NextRequest) {
+import { withAudit } from "@/lib/audit";
+export const POST = withAudit(handler);
+async function handler(req: NextRequest) {
   const access = await guardOwner();
   if (!access.ok) return access.response;
   const staff = access.user;

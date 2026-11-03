@@ -3,13 +3,14 @@ import { getCurrentUser } from "@/lib/auth";
 import AdminPanel from "./AdminPanel";
 import LogoutButton from "../cabinet/LogoutButton";
 import Link from "next/link";
+import { isOwnerRole, isStaffRole } from "@/lib/roles";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
-  if (user.role !== "ADMIN" && user.role !== "OWNER") redirect("/cabinet");
+  if (!isStaffRole(user.role)) redirect("/cabinet");
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-12">
@@ -20,7 +21,7 @@ export default async function AdminPage() {
         <LogoutButton />
       </div>
       <Link href="/settings" className="btn-outline w-full mb-6">Настройки профиля и уведомлений</Link>
-      <AdminPanel isOwner={user.role === "OWNER"} />
+      <AdminPanel isOwner={isOwnerRole(user.role)} />
     </div>
   );
 }

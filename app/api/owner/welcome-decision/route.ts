@@ -8,7 +8,9 @@ const schema = z.object({
   action: z.enum(["confirm", "reject"]),
 });
 
-export async function POST(req: NextRequest) {
+import { withAudit } from "@/lib/audit";
+export const POST = withAudit(handler);
+async function handler(req: NextRequest) {
   const access = await guardOwner();
   if (!access.ok) return access.response;
 
