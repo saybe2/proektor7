@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { getJson, postJson } from "@/lib/client-api";
 import { AUTO_CONFIRM_HOURS, BONUS } from "@/lib/config";
+import { maxReceiptRedemption, purchaseInputError } from "@/lib/redemption";
 
 type Client = {
   id: string;
@@ -42,7 +43,11 @@ export default function AdminPanel({ isOwner }: { isOwner: boolean }) {
   }
 
   async function submitPurchase() {
-    if (!selected) return;
+    if (!selected || loading) return;
+    if (purchaseError) {
+      setMessage({ ok: false, text: purchaseError });
+      return;
+    }
     setLoading(true);
     setMessage(null);
     try {
@@ -51,7 +56,7 @@ export default function AdminPanel({ isOwner }: { isOwner: boolean }) {
         {
           userId: selected.id,
           amount: Number(amount),
-          bonusesToSpend: Number(bonuses) || 0,
+          bonusesToSpend: Number(bonuses),
         }
       );
       if (!data.ok) {
@@ -76,10 +81,12 @@ export default function AdminPanel({ isOwner }: { isOwner: boolean }) {
   const amountNum = Number(amount) || 0;
   // гость не подтверждал номер: бонусы копятся, но списать их нельзя
   const canRedeem = Boolean(selected && !selected.isGuest);
-  const maxRedeem =
-    canRedeem && amountNum >= BONUS.MIN_CHECK_FOR_REDEEM
-      ? Math.floor((amountNum * BONUS.MAX_REDEEM_PERCENT) / 100)
-      : 0;
+  const maxRedeem = canRedeem
+    ? Math.max(0, Math.min(maxReceiptRedemption(amountNum), selected?.bonusBalance ?? 0))
+    : 0;
+  const bonusesNum = Number(bonuses);
+  const purchaseError = purchaseInputError(Number(amount), bonusesNum)
+    || (bonusesNum > maxRedeem ? `Доступно к списанию не более ${maxRedeem} бонусов` : null);
 
   return (
     <div className="space-y-6">
@@ -148,6 +155,8 @@ export default function AdminPanel({ isOwner }: { isOwner: boolean }) {
                 type="number"
                 inputMode="numeric"
                 min={1}
+                max={BONUS.MAX_CHECK}
+                step={1}
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
               />
@@ -159,6 +168,8 @@ export default function AdminPanel({ isOwner }: { isOwner: boolean }) {
                 type="number"
                 inputMode="numeric"
                 min={0}
+                max={maxRedeem}
+                step={1}
                 value={bonuses}
                 onChange={(e) => setBonuses(e.target.value)}
                 disabled={!canRedeem || amountNum < BONUS.MIN_CHECK_FOR_REDEEM}
@@ -167,11 +178,15 @@ export default function AdminPanel({ isOwner }: { isOwner: boolean }) {
                 {!canRedeem
                   ? "Гость не зарегистрирован на сайте — бонусы копятся, списать их можно после регистрации"
                   : amountNum >= BONUS.MIN_CHECK_FOR_REDEEM
-                    ? `Макс: ${Math.min(maxRedeem, selected.bonusBalance)} (${BONUS.MAX_REDEEM_PERCENT}% чека)`
+                    ? `Макс: ${maxRedeem} (${BONUS.MAX_REDEEM_PERCENT}% чека)`
                     : `Списание доступно при чеке от ${BONUS.MIN_CHECK_FOR_REDEEM} ₽`}
               </div>
             </div>
           </div>
+
+          {purchaseError && amount && (
+            <p role="alert" className="mt-3 text-sm font-bold text-red-500">{purchaseError}</p>
+          )}
 
           {message && (
             <p className={`mt-4 text-sm font-bold ${message.ok ? "text-green-600" : "text-red-500"}`}>
@@ -181,7 +196,7 @@ export default function AdminPanel({ isOwner }: { isOwner: boolean }) {
 
           <button
             className="btn-brand w-full mt-4"
-            disabled={loading || amountNum <= 0}
+            disabled={loading || Boolean(purchaseError)}
             onClick={() => void submitPurchase()}
           >
             {loading ? "Проводим..." : `Провести чек на ${amountNum || 0} ₽`}

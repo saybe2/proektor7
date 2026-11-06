@@ -12,7 +12,7 @@ export default async function Footer() {
         <div>
           <div className="h-display text-2xl mb-3 text-[#6f72ff]">Proектор</div>
           <p className="text-white/70 text-sm">
-            Оплачивайте бонусами до 20% от чека
+            Тайм-кафе: комнаты с проектором и телевизорами, караоке, настольные игры и вкусное меню.
           </p>
         </div>
         <div>

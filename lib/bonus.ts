@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 import { AUTO_CONFIRM_HOURS, BONUS } from "./config";
 import { sendPushToUser } from "./push";
 import { randomInt } from "node:crypto";
+import { purchaseInputError } from "./redemption";
 
 type DbClient = Prisma.TransactionClient | typeof db;
 
@@ -167,7 +168,7 @@ export type PurchaseResult =
 
 /**
  * Проведение покупки админом:
- * - проверка лимитов списания (50% чека, чек от 500₽)
+ * - проверка лимитов списания (20% чека, чек от 500₽)
  * - чек и транзакции создаются в статусе PENDING
  * - балансы меняются только после подтверждения владельцем
  */
@@ -179,12 +180,8 @@ export async function recordPurchase(params: {
 }): Promise<PurchaseResult> {
   const { userId, amount, bonusesToSpend, adminId } = params;
 
-  if (!Number.isInteger(amount) || amount <= 0) {
-    return { ok: false, error: "Некорректная сумма чека" };
-  }
-  if (!Number.isInteger(bonusesToSpend) || bonusesToSpend < 0) {
-    return { ok: false, error: "Некорректная сумма бонусов" };
-  }
+  const inputError = purchaseInputError(amount, bonusesToSpend);
+  if (inputError) return { ok: false, error: inputError };
 
   const user = await db.user.findUnique({ where: { id: userId } });
   if (!user) return { ok: false, error: "Клиент не найден" };
@@ -197,19 +194,6 @@ export async function recordPurchase(params: {
       return {
         ok: false,
         error: "Гость не зарегистрирован на сайте — списать бонусы нельзя",
-      };
-    }
-    if (amount < BONUS.MIN_CHECK_FOR_REDEEM) {
-      return {
-        ok: false,
-        error: `Бонусы можно списывать только при чеке от ${BONUS.MIN_CHECK_FOR_REDEEM} ₽`,
-      };
-    }
-    const maxRedeem = Math.floor((amount * BONUS.MAX_REDEEM_PERCENT) / 100);
-    if (bonusesToSpend > maxRedeem) {
-      return {
-        ok: false,
-        error: `Бонусами можно оплатить не более ${BONUS.MAX_REDEEM_PERCENT}% чека (${maxRedeem} бонусов)`,
       };
     }
     const { available } = await getBonusState(userId);
