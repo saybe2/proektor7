@@ -4,11 +4,14 @@ import { requireOwnerPage } from "@/lib/auth";
 import LogoutButton from "../cabinet/LogoutButton";
 import BroadcastForm from "./BroadcastForm";
 import PendingConfirmations from "./PendingConfirmations";
+import BusinessHoursForm from "./BusinessHoursForm";
+import { getBusinessHours } from "@/lib/business-hours";
 
 export const dynamic = "force-dynamic";
 
 export default async function OwnerPage() {
   await requireOwnerPage();
+  const hours = await getBusinessHours();
 
   const monthAgo = new Date();
   monthAgo.setDate(monthAgo.getDate() - 30);
@@ -144,6 +147,7 @@ export default async function OwnerPage() {
       </div>
 
       {/* Контент */}
+      <BusinessHoursForm initial={hours} />
       <div className="card p-6 mb-6 flex items-center justify-between gap-4">
         <div>
           <div className="font-extrabold text-brand-dark">Контент сайта</div>

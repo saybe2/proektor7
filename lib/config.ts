@@ -47,10 +47,10 @@ export const SITE = {
   /** Улица и дом отдельно — для микроразметки */
   STREET_ADDRESS: "просп. Мира, 34Б",
   CITY: "Набережные Челны",
-  HOURS: "Вс–чт: 17:00–02:00 · пт–сб: 17:00–04:00",
+  HOURS: "Вс–чт: 15:00–02:00 · пт–сб: 15:00–04:00",
   HOURS_SHORT: "Вс–чт до 02:00 · пт–сб до 04:00",
   /** Часы работы в формате schema.org */
-  OPENING_HOURS: ["Su-Th 17:00-02:00", "Fr-Sa 17:00-04:00"],
+  OPENING_HOURS: ["Su-Th 15:00-02:00", "Fr-Sa 15:00-04:00"],
   MAP_YANDEX: "https://yandex.ru/maps/org/proyektor/63843978209/",
   MAP_2GIS:
     "https://2gis.ru/nabchelny/inside/4082022817479740/firm/70000001029411730/",

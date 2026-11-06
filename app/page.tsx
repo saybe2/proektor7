@@ -6,6 +6,8 @@ import { DEFAULT_ROOMS, parseImages } from "@/lib/rooms";
 import { cabinetPath, getCurrentUser } from "@/lib/auth";
 import { telHref } from "@/lib/format";
 import BookingActions from "@/components/BookingActions";
+import { getBusinessHours } from "@/lib/business-hours";
+import { formatHours } from "@/lib/hours";
 import {
   IconClock,
   IconDice,
@@ -25,6 +27,7 @@ const SERVICES = [
 ];
 
 export default async function HomePage() {
+  const hours = formatHours(await getBusinessHours());
   const currentUser = await getCurrentUser();
   const cabinetHref = cabinetPath(currentUser?.role);
   const databaseRooms = await db.room.findMany({ where: { active: true }, orderBy: { sort: "asc" }, take: 3 });
@@ -46,7 +49,7 @@ export default async function HomePage() {
             url: SITE.URL,
             telephone: SITE.PHONE,
             address: { "@type": "PostalAddress", addressLocality: SITE.CITY, streetAddress: SITE.STREET_ADDRESS },
-            openingHours: SITE.OPENING_HOURS,
+            openingHours: hours.structured,
             image: `${SITE.URL}/img/logo.jpg`,
             priceRange: "₽₽",
           }),
@@ -58,7 +61,7 @@ export default async function HomePage() {
         <div className="absolute left-[-5rem] bottom-[-8rem] h-64 w-64 rounded-full border-[45px] border-[#2020c7] opacity-90" />
         <div className="relative max-w-7xl mx-auto px-4 py-10 md:py-20 grid md:grid-cols-[1.2fr_.8fr] gap-10 items-center min-h-[670px] md:min-h-[720px]">
           <div className="z-10">
-            <div className="eyebrow text-brand mb-6">Набережные Челны · каждый день с 17:00</div>
+            <div className="eyebrow text-brand mb-6">Набережные Челны · {hours.headline}</div>
             <h1 className="h-display text-[clamp(3rem,12vw,7.5rem)] text-[#111118]">
               Твоё<br />место<br /><span className="text-brand">в городе</span>
             </h1>
@@ -84,7 +87,7 @@ export default async function HomePage() {
               <img src="/img/logo.webp" alt="Логотип тайм-кафе Proектор" width={700} height={700} fetchPriority="high" className="w-full aspect-square object-cover" />
               <div className="grid grid-cols-2 gap-3 mt-4 font-black text-xs uppercase">
                 <span className="flex items-center gap-2"><IconMapPin className="w-4 h-4 text-brand" />Мира, 34Б</span>
-                <span className="flex items-center gap-2"><IconClock className="w-4 h-4 text-brand" />{SITE.HOURS_SHORT}</span>
+                <span className="flex items-center gap-2"><IconClock className="w-4 h-4 text-brand" />{hours.text}</span>
               </div>
             </div>
           </div>
@@ -164,7 +167,7 @@ export default async function HomePage() {
       <section className="border-y-2 border-[#111118] bg-[#ffdd38]">
         <div className="max-w-7xl mx-auto px-4 py-14 md:py-20 grid md:grid-cols-2 gap-10 items-center">
           <div><div className="eyebrow mb-4">Мы на карте</div><h2 className="h-display text-4xl md:text-6xl">Центр города.<br />Цокольный этаж.</h2></div>
-          <div className="space-y-5 font-bold"><p className="flex gap-3"><IconMapPin className="w-6 h-6 shrink-0" />{SITE.ADDRESS}</p><p className="flex gap-3"><IconClock className="w-6 h-6 shrink-0" />{SITE.HOURS}</p><div className="flex flex-col sm:flex-row gap-3 pt-2"><a className="btn-brand" href={SITE.MAP_YANDEX} target="_blank" rel="noopener noreferrer">Открыть Яндекс Карты</a><a className="btn-outline !bg-transparent" href={SITE.MAP_2GIS} target="_blank" rel="noopener noreferrer">Открыть 2ГИС</a></div></div>
+          <div className="space-y-5 font-bold"><p className="flex gap-3"><IconMapPin className="w-6 h-6 shrink-0" />{SITE.ADDRESS}</p><p className="flex gap-3"><IconClock className="w-6 h-6 shrink-0" />{hours.text}</p><div className="flex flex-col sm:flex-row gap-3 pt-2"><a className="btn-brand" href={SITE.MAP_YANDEX} target="_blank" rel="noopener noreferrer">Открыть Яндекс Карты</a><a className="btn-outline !bg-transparent" href={SITE.MAP_2GIS} target="_blank" rel="noopener noreferrer">Открыть 2ГИС</a></div></div>
         </div>
       </section>
     </>

@@ -1,15 +1,18 @@
 import Link from "next/link";
 import { SITE } from "@/lib/config";
 import { telHref } from "@/lib/format";
+import { getBusinessHours } from "@/lib/business-hours";
+import { formatHours } from "@/lib/hours";
 
-export default function Footer() {
+export default async function Footer() {
+  const hours = formatHours(await getBusinessHours());
   return (
     <footer className="bg-[#111118] text-white mt-12 md:mt-20 pb-20 md:pb-0 border-t-2 border-[#111118]">
       <div className="max-w-7xl mx-auto px-4 py-10 md:py-14 grid gap-10 sm:grid-cols-3">
         <div>
           <div className="h-display text-2xl mb-3 text-[#6f72ff]">Proектор</div>
           <p className="text-white/70 text-sm">
-            Тайм-кафе: комнаты с проектором, караоке, настольные игры и вкусное меню.
+            Оплачивайте бонусами до 20% от чека
           </p>
         </div>
         <div>
@@ -26,7 +29,7 @@ export default function Footer() {
         <div>
           <div className="font-extrabold mb-2">Контакты</div>
           <p className="text-white/80 text-sm">{SITE.ADDRESS}</p>
-          <p className="text-white/80 text-sm mt-1">{SITE.HOURS}</p>
+          <p className="text-white/80 text-sm mt-1">{hours.text}</p>
           <p className="text-white/80 text-sm mt-1">
             <a href={telHref(SITE.PHONE)} className="hover:text-white font-bold">
               {SITE.PHONE}
